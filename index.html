@@ -40,10 +40,78 @@ function cOpts(s){return '<option value="">— Seleccionar —</option>'+cars.fi
 function addUnit(){draft.push({unitType:"patrulla",car:"",driver:"",comp:"",support:"",breakfast:"",lunch:"",coffee:"",sector:"",tasks:""});renderUnits()}
 function setU(i,k,v){draft[i][k]=v}
 function delU(i){draft.splice(i,1);renderUnits()}
-function renderUnits(){units.innerHTML=draft.length?draft.map((u,i)=>`<div class=card><h3>🚓 Unidad ${i+1}</h3><div class=grid><div><label>Tipo de unidad</label><select onchange="setU(${i},'unitType',this.value)"><option value="patrulla" ${u.unitType==="patrulla"||!u.unitType?"selected":""}>🚓 Patrulla</option><option value="moto" ${u.unitType==="moto"?"selected":""}>🏍️ Moto</option><option value="pareja" ${u.unitType==="pareja"?"selected":""}>🚶 Pareja en recorrido</option></select></div></div>${(!u.unitType||u.unitType==="patrulla")?`<div class=grid><div><label>Patrulla</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>Chofer</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>Apoyo</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`:u.unitType==="moto"?`<div class=grid><div><label>🏍️ Moto</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>Oficial</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`:`<div class=grid><div><label>Oficial 1</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>Oficial 2</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`}<h4>🍽️ Horario de alimentación</h4><div class=grid><div><label>🍳 Desayuno</label><input type=time value="${esc(u.breakfast)}" onchange="setU(${i},'breakfast',this.value)"></div><div><label>🍛 Almuerzo</label><input type=time value="${esc(u.lunch)}" onchange="setU(${i},'lunch',this.value)"></div><div><label>☕ Café</label><input type=time value="${esc(u.coffee)}" onchange="setU(${i},'coffee',this.value)"></div><div><label>📍 Sector asignado</label><input value="${esc(u.sector)}" onchange="setU(${i},'sector',this.value)"></div></div><div style="margin-top:10px"><label>🎯 Labores a realizar</label><textarea onchange="setU(${i},'tasks',this.value)">${esc(u.tasks)}</textarea></div><div class=actions><button class=danger onclick="delU(${i})">Eliminar unidad</button></div></div>`).join(""):"Agregá una unidad para comenzar."}
+function renderUnits(){units.innerHTML=draft.length?draft.map((u,i)=>{let pairNo=draft.slice(0,i).filter(x=>x.unitType==="pareja").length+1;let titulo=u.unitType==="moto"?(find(cars,u.car,"numero")!=="-"?"🏍️ Moto "+find(cars,u.car,"numero"):"🏍️ Moto") :u.unitType==="pareja"?"👮 Pareja "+pairNo:(find(cars,u.car,"numero")!=="-"?"🚓 Patrulla "+find(cars,u.car,"numero"):"🚓 Patrulla");return `<div class=card><h3>${titulo}</h3><div class=grid><div><label>Tipo de unidad</label><select onchange="setU(${i},'unitType',this.value)"><option value="patrulla" ${u.unitType==="patrulla"||!u.unitType?"selected":""}>🚓 Patrulla</option><option value="moto" ${u.unitType==="moto"?"selected":""}>🏍️ Moto</option><option value="pareja" ${u.unitType==="pareja"?"selected":""}>👮 Pareja en recorrido</option></select></div></div>${u.unitType==="pareja"?`<div class=grid><div><label>👮 Oficial 1</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Oficial 2</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`:u.unitType==="moto"?`<div class=grid><div><label>🏍️ Moto</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Oficial</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`:`<div class=grid><div><label>🚓 Patrulla</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Chofer</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Apoyo</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`}<h4>🍽️ Horario de alimentación</h4><div class=grid><div><label>🍳 Desayuno</label><input type=time value="${esc(u.breakfast)}" onchange="setU(${i},'breakfast',this.value)"></div><div><label>🍛 Almuerzo</label><input type=time value="${esc(u.lunch)}" onchange="setU(${i},'lunch',this.value)"></div><div><label>☕ Café</label><input type=time value="${esc(u.coffee)}" onchange="setU(${i},'coffee',this.value)"></div><div><label>📍 Sector asignado</label><input value="${esc(u.sector)}" onchange="setU(${i},'sector',this.value)"></div></div><div style="margin-top:10px"><label>🎯 Labores a realizar</label><textarea onchange="setU(${i},'tasks',this.value)">${esc(u.tasks)}</textarea></div><div class=actions><button class=danger onclick="delU(${i})">Eliminar unidad</button></div></div>`}).join(""):"Agregá una unidad para comenzar."}
 async function getUnits(id){let r=await sb.from("asignaciones").select("*").eq("rol_id",id).order("created_at");if(r.error){alert(r.error.message);return []}return r.data||[]}
 async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");let u=await getUnits(r.id);draft=u.map(x=>({car:x.patrulla_id,driver:x.chofer_id,comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits()}
-async function saveRole(){if(!draft.length)return alert("Agregá una unidad.");for(let u of draft){let type=u.unitType||"patrulla";if(type==="patrulla"&&!u.car)return alert("La patrulla necesita un vehículo.");if(type==="patrulla"&&!u.driver)return alert("La patrulla necesita un chofer.");if(type==="moto"&&!u.car)return alert("La moto necesita seleccionar una moto.");if(type==="moto"&&!u.driver)return alert("La moto necesita un oficial.");if(type==="pareja"&&(!u.driver||!u.comp))return alert("La pareja en recorrido necesita dos oficiales.");}let used=[];for(let u of draft)for(let id of [u.driver,u.comp,u.support])if(id){if(used.includes(id))return alert("Un funcionario está asignado a más de una unidad.");used.push(id)}let rr=await sb.from("roles").insert({fecha:roleDate.value,turno:roleShift.value,encargado:roleLeader.value}).select().single();if(rr.error)return alert(rr.error.message);let rows=draft.map(u=>({rol_id:rr.data.id,patrulla_id:u.car||null,chofer_id:u.driver||null,acompanante_id:u.comp||null,apoyo_id:u.support||null,desayuno:u.breakfast||null,almuerzo:u.lunch||null,cafe:u.coffee||null,sector:u.sector||null,labores:u.tasks||null}));let ir=await sb.from("asignaciones").insert(rows);if(ir.error){await sb.from("roles").delete().eq("id",rr.data.id);return alert(ir.error.message)}draft=[];await loadAll();await showReport(rr.data);go("informe")}
+async function saveRole(){
+  if(!draft.length)return alert("Agregá una unidad.");
+
+  for(let u of draft){
+    let type=u.unitType||"patrulla";
+
+   if(type==="patrulla"&&!u.car)
+      return alert("La patrulla necesita un vehículo.");
+
+    if(type==="patrulla"&&!u.driver)
+      return alert("La patrulla necesita un chofer.");
+
+    if(type==="moto"&&!u.car)
+      return alert("La moto necesita seleccionar una moto.");
+
+    if(type==="moto"&&!u.driver)
+      return alert("La moto necesita un oficial.");
+
+    if(type==="pareja"&&(!u.driver||!u.comp))
+      return alert("La pareja en recorrido necesita dos oficiales.");
+  }
+
+  let used=[];
+
+  for(let u of draft){
+    for(let id of [u.driver,u.comp,u.support]){
+      if(id){
+        if(used.includes(id))
+          return alert("Un funcionario está asignado a más de una unidad.");
+
+        used.push(id);
+      }
+    }
+  }
+
+  let rr=await sb.from("roles").insert({
+    fecha:roleDate.value,
+    turno:roleShift.value,
+    encargado:roleLeader.value
+  }).select().single();
+
+  if(rr.error)return alert(rr.error.message);
+
+  let rows=draft.map(u=>({
+    rol_id:rr.data.id,
+    tipo_unidad:u.unitType||"patrulla",
+    patrulla_id:u.car||null,
+    chofer_id:u.driver||null,
+    acompanante_id:u.comp||null,
+    apoyo_id:u.support||null,
+    desayuno:u.breakfast||null,
+    almuerzo:u.lunch||null,
+    cafe:u.coffee||null,
+    sector:u.sector||null,
+    labores:u.tasks||null
+  }));
+
+  let ir=await sb.from("asignaciones").insert(rows);
+
+  if(ir.error){
+    await sb.from("roles").delete().eq("id",rr.data.id);
+    return alert(ir.error.message);
+  }
+
+  draft=[];
+  await loadAll();
+  await showReport(rr.data);
+  go("informe");
+}
 function find(a,id,k){let x=a.find(y=>y.id===id);return x?x[k]:"—"}
 async function showReport(r){let us=await getUnits(r.id);report.innerHTML=`<div class=reportHead><b>ROL DE SERVICIO OPERATIVO</b><div>${esc(r.fecha)} ${r.turno?"• "+esc(r.turno):""} ${r.encargado?"• Encargado: "+esc(r.encargado):""}</div></div>`+us.map((u,i)=>`<div class=reportItem><h3>🚓 ${esc(find(cars,u.patrulla_id,"numero")||"Unidad "+(i+1))}</h3><div class=reportGrid><div><span class=small>Chofer</span><br><b>${esc(find(people,u.chofer_id,"nombre"))}</b></div><div><span class=small>Acompañante</span><br><b>${esc(find(people,u.acompanante_id,"nombre"))}</b></div><div><span class=small>Apoyo</span><br><b>${esc(find(people,u.apoyo_id,"nombre"))}</b></div><div><span class=small>🍽️ Alimentación</span><br>🍳 ${esc(u.desayuno||"—")} · 🍛 ${esc(u.almuerzo||"—")} · ☕ ${esc(u.cafe||"—")}</div><div><span class=small>📍 Sector</span><br><b>${esc(u.sector||"—")}</b></div></div><p><span class=small>🎯 Labores</span><br>${esc(u.labores||"—").replace(/\n/g,"<br>")}</p></div>`).join("")+`<div class=card><b>Total de patrullas:</b> ${us.length}</div>`}
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
