@@ -133,7 +133,19 @@ async function signUp(){msg("Creando cuenta...");let r=await sb.auth.signUp({ema
 async function signOut(){await sb.auth.signOut();showLogin()}
 function showLogin(){login.classList.remove("hidden");app.classList.add("hidden")}
 async function showApp(){login.classList.add("hidden");app.classList.remove("hidden");await loadAll();go("inicio")}
-function go(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(p).classList.add("active");if(p==="rol")renderUnits();if(p==="historial")renderHistory()}
+function go(p){
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.getElementById(p).classList.add("active");
+
+  if(p==="rol"){
+    fillCommandSelects();
+    renderUnits();
+  }
+
+  if(p==="historial"){
+    renderHistory();
+  }
+}
 function fillCommandSelects(){
   const ids = [
     "roleGroup",
@@ -161,7 +173,25 @@ function fillCommandSelects(){
         .join("");
   });
 }
-async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personRole.value="";await loadAll()}}
+async function loadAll(){
+  const [p,c,r] = await Promise.all([
+    sb.from("personal").select("*").order("nombre"),
+    sb.from("patrullas").select("*").order("numero"),
+    sb.from("roles").select("*").order("created_at")
+  ]);
+
+  if(p.error || c.error || r.error){
+    return alert((p.error || c.error || r.error).message);
+  }
+
+  people = p.data || [];
+  console.log("FUNCIONARIOS CARGADOS:", people);
+  cars = c.data || [];
+  roles = r.data || [];
+
+  fillCommandSelects();
+  refresh();
+}async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personRole.value="";await loadAll()}}
 async function delPerson(id){
   if(confirm("¿Eliminar funcionario?")){
     let r=await sb.from("personal").delete().eq("id",id);
