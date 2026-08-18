@@ -135,18 +135,30 @@ function showLogin(){login.classList.remove("hidden");app.classList.add("hidden"
 async function showApp(){login.classList.add("hidden");app.classList.remove("hidden");await loadAll();go("inicio")}
 function go(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(p).classList.add("active");if(p==="rol")renderUnits();if(p==="historial")renderHistory()}
 function fillCommandSelects(){
-  const ids=["roleGroup","roleLeader","roleChief","roleDeputy","roleDistrict","oficialGuardia","despachador"];
+  const ids = [
+    "roleGroup",
+    "roleLeader",
+    "roleChief",
+    "roleDeputy",
+    "roleDistrict",
+    "oficialGuardia",
+    "despachador"
+  ];
 
-  ids.forEach(id=>{
-    const s=document.getElementById(id);
-    if(!s)return;
+  ids.forEach(id => {
+    const s = document.getElementById(id);
+    if (!s) return;
 
-    const current=s.value;
+    const current = s.value;
 
-    s.innerHTML='<option value="">— Seleccionar —</option>'+
-      people.filter(p=>p.estado==="Disponible").map(p=>
-        `<option value="${p.id}" ${p.id===current?"selected":""}>${esc(p.nombre)}${p.funcion?` — ${esc(p.funcion)}`:""}</option>`
-      ).join("");
+    s.innerHTML =
+      '<option value="">— Seleccionar —</option>' +
+      people
+        .filter(p => p.estado === "Disponible")
+        .map(p =>
+          `<option value="${p.id}" ${p.id === current ? "selected" : ""}>${esc(p.nombre)}${p.funcion ? " — " + esc(p.funcion) : ""}</option>`
+        )
+        .join("");
   });
 }
 async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personRole.value="";await loadAll()}}
