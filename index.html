@@ -11,7 +11,91 @@
 <section id="inicio" class="page active"><div class="card"><h2>Panel</h2><div class="grid"><div><b id="kPeople">0</b><div class="small">Funcionarios</div></div><div><b id="kCars">0</b><div class="small">Patrullas</div></div><div><b id="kRoles">0</b><div class="small">Roles</div></div></div></div><div class="card"><div class="actions"><button onclick="go('rol')">📋 Crear rol</button><button class="secondary" onclick="go('personal')">➕ Personal</button><button class="secondary" onclick="go('patrullas')">🚓 Patrulla</button></div></div></section>
 <section id="personal" class="page"><div class="card"><h2>👮 Personal</h2><div class="grid"><div><label>Nombre completo</label><input id="personName"></div><div><label>Función / puesto</label><input id="personRole"></div><div><label>Estado</label><select id="personState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addPerson()">➕ Agregar funcionario</button></div></div><div class="card" id="peopleList"></div></section>
 <section id="patrullas" class="page"><div class="card"><h2>🚓 Patrullas</h2><div class="grid"><div><label>Número</label><input id="carNumber"></div><div><label>Tipo</label><input id="carType" placeholder="Patrulla"></div><div><label>Estado</label><select id="carState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addCar()">➕ Agregar patrulla</button></div></div><div class="card" id="carsList"></div></section>
-<section id="rol" class="page"><div class="card"><h2>📋 Nuevo rol</h2><div class="grid"><div><label>Fecha</label><input id="roleDate" type="date"></div><div><label>Horario / turno</label><input id="roleShift" value="06:00 - 18:00"></div><div><label>Encargado de grupo</label><select id="roleGroup"><option value="">— Seleccionar —</option></select></div><div><label>Encargado de escuadra</label><select id="roleLeader"><option value="">— Seleccionar —</option></select></div><div><label>Jefe en servicio</label><select id="roleChief"><option value="">— Seleccionar —</option></select></div><div><label>Subjefe en servicio</label><select id="roleDeputy"><option value="">— Seleccionar —</option></select></div><div><label>Jefe distrital en servicio</label><select id="roleDistrict"><option value="">— Seleccionar —</option></select></div></div></div><div id="units"></div><div class="card no-print"><div class="actions"><button onclick="addUnit()">➕ Agregar patrulla</button><button class="secondary" onclick="copyLast()">📋 Copiar último rol</button><button class="secondary" onclick="saveRole()">💾 Guardar rol</button></div></div></section>
+<section id="rol" class="page">
+  <div class="card">
+    <h2>📋 Nuevo rol</h2>
+
+    <div class="grid">
+      <div>
+        <label>Fecha</label>
+        <input id="roleDate" type="date">
+      </div>
+
+      <div>
+        <label>Horario / turno</label>
+        <input id="roleShift" value="06:00 - 18:00">
+      </div>
+
+      <div>
+        <label>Encargado de grupo</label>
+        <select id="roleGroup"></select>
+      </div>
+
+      <div>
+        <label>Encargado de escuadra</label>
+        <select id="roleLeader"></select>
+      </div>
+
+      <div>
+        <label>Subjefe en servicio</label>
+        <select id="roleDeputy"></select>
+      </div>
+
+      <div>
+        <label>Jefe distrital en servicio</label>
+        <select id="roleDistrict"></select>
+      </div>
+
+      <div>
+        <label>Jefe de servicio</label>
+        <select id="roleChief"></select>
+      </div>
+    </div>
+
+    <hr>
+
+    <h3>👮 Personal del servicio</h3>
+    <p class="small">
+      Seleccioná los funcionarios y establecé el horario de entrada y salida.
+    </p>
+
+    <div class="card">
+      <h3>🚔 Operaciones</h3>
+      <div id="personalOperaciones"></div>
+      <button type="button" onclick="addPersonalRolRow('Operaciones')">
+        ➕ Agregar funcionario
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>🟢 Programas</h3>
+      <div id="personalProgramas"></div>
+      <button type="button" onclick="addPersonalRolRow('Programas')">
+        ➕ Agregar funcionario
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>🔐 Armería</h3>
+      <div id="personalArmeria"></div>
+      <button type="button" onclick="addPersonalRolRow('Armería')">
+        ➕ Agregar funcionario
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>🔄 Labores Mixtas</h3>
+      <div id="personalLaboresMixtas"></div>
+      <button type="button" onclick="addPersonalRolRow('Labores Mixtas')">
+        ➕ Agregar funcionario
+      </button>
+    </div>
+
+    <div class="actions">
+      <button onclick="saveRole()">💾 Guardar rol</button>
+    </div>
+  </div>
+</section>
 <section id="historial" class="page"><div class="card"><h2>📚 Historial</h2><div id="historyList"></div></div></section>
 <section id="informe" class="page"><div id="report"></div><div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div></section>
 </main></div>
@@ -65,6 +149,54 @@ function renderCars(){carsList.innerHTML=cars.length?cars.map(c=>`<div class=ite
 function pOpts(s){return '<option value="">— Seleccionar —</option>'+people.filter(p=>p.estado==="Disponible").map(p=>`<option value="${p.id}" ${p.id===s?"selected":""}>${esc(p.nombre)}</option>`).join("")}
 function cOpts(s){return '<option value="">— Seleccionar —</option>'+cars.filter(c=>c.estado==="Disponible").map(c=>`<option value="${c.id}" ${c.id===s?"selected":""}>${esc(c.numero)}</option>`).join("")}
 function addUnit(){draft.push({unitType:"patrulla",car:"",driver:"",comp:"",support:"",breakfast:"",lunch:"",coffee:"",sector:"",tasks:""});renderUnits()}
+  function addPersonalRolRow(area){
+  const ids={
+    "Operaciones":"personalOperaciones",
+    "Programas":"personalProgramas",
+    "Armería":"personalArmeria",
+    "Labores Mixtas":"personalLabores"
+  };
+
+  const cont=document.getElementById(ids[area]);
+  if(!cont)return;
+
+  const disponibles=people.filter(p=>p.estado==="Disponible");
+
+  const row=document.createElement("div");
+  row.className="item personal-rol-row";
+  row.dataset.area=area;
+
+  row.innerHTML=`
+    <div class="grid">
+      <div>
+        <label>Funcionario</label>
+        <select class="rol-persona">
+          <option value="">— Seleccionar —</option>
+          ${disponibles.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join("")}
+        </select>
+      </div>
+
+      <div>
+        <label>Entrada</label>
+        <input type="time" class="rol-entrada" value="06:00">
+      </div>
+
+      <div>
+        <label>Salida</label>
+        <input type="time" class="rol-salida" value="18:00">
+      </div>
+
+      <div>
+        <label>&nbsp;</label>
+        <button type="button" class="danger" onclick="this.closest('.personal-rol-row').remove()">
+          🗑️ Quitar
+        </button>
+      </div>
+    </div>
+  `;
+
+  cont.appendChild(row);
+}
 function setU(i,k,v){draft[i][k]=v}
 function delU(i){draft.splice(i,1);renderUnits()}
 function renderUnits(){units.innerHTML=draft.length?draft.map((u,i)=>{let pairNo=draft.slice(0,i).filter(x=>x.unitType==="pareja").length+1;let titulo=u.unitType==="moto"?(find(cars,u.car,"numero")!=="-"?"🏍️ Moto "+find(cars,u.car,"numero"):"🏍️ Moto") :u.unitType==="pareja"?"👮 Pareja "+pairNo:(find(cars,u.car,"numero")!=="-"?"🚓 Patrulla "+find(cars,u.car,"numero"):"🚓 Patrulla");return `<div class=card><h3>${titulo}</h3><div class=grid><div><label>Tipo de unidad</label><select onchange="setU(${i},'unitType',this.value)"><option value="patrulla" ${u.unitType==="patrulla"||!u.unitType?"selected":""}>🚓 Patrulla</option><option value="moto" ${u.unitType==="moto"?"selected":""}>🏍️ Moto</option><option value="pareja" ${u.unitType==="pareja"?"selected":""}>👮 Pareja en recorrido</option></select></div></div>${u.unitType==="pareja"?`<div class=grid><div><label>👮 Oficial 1</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Oficial 2</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Oficial 3</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`:u.unitType==="moto"?`<div class=grid><div><label>🏍️ Moto</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Oficial</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`:`<div class=grid><div><label>🚓 Patrulla</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Chofer</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Apoyo</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`}<h4>🍽️ Horario de alimentación</h4><div class=grid><div><label>🍳 Desayuno</label><input type=time value="${esc(u.breakfast)}" onchange="setU(${i},'breakfast',this.value)"></div><div><label>🍛 Almuerzo</label><input type=time value="${esc(u.lunch)}" onchange="setU(${i},'lunch',this.value)"></div><div><label>☕ Café</label><input type=time value="${esc(u.coffee)}" onchange="setU(${i},'coffee',this.value)"></div><div><label>📍 Sector asignado</label><input value="${esc(u.sector)}" onchange="setU(${i},'sector',this.value)"></div></div><div style="margin-top:10px"><label>🎯 Labores a realizar</label><textarea onchange="setU(${i},'tasks',this.value)">${esc(u.tasks)}</textarea></div><div class=actions><button class=danger onclick="delU(${i})">Eliminar unidad</button></div></div>`}).join(""):"Agregá una unidad para comenzar."}
@@ -143,6 +275,22 @@ let rows=draft.map(u=>({
     return alert(ir.error.message);
   }
 
+  const personalRol=[...document.querySelectorAll(".personal-rol-row")].map(row=>({
+  rol_id:rr.data.id,
+  funcionario_id:row.querySelector(".rol-persona").value,
+  area:row.dataset.area,
+  hora_entrada:row.querySelector(".rol-entrada").value || null,
+  hora_salida:row.querySelector(".rol-salida").value || null
+})).filter(x=>x.funcionario_id);
+
+if(personalRol.length){
+  const pr=await sb.from("personal_rol").insert(personalRol);
+
+  if(pr.error){
+    await sb.from("roles").delete().eq("id",rr.data.id);
+    return alert(pr.error.message);
+  }
+}
   draft=[];
   await loadAll();
   await showReport(rr.data);
