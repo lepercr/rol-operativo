@@ -422,10 +422,27 @@ async function showReport(r){
       let vehiculo=find(cars,u.patrulla_id,"numero");
 
       let titulo="";
-      let personal="";
+let personal="";
 
-      if(type==="pareja"){
-        titulo=`🚶 Pareja en recorrido`;
+if(type==="personal_rol"){
+    titulo=`👤 ${esc(u.area || "Personal")}`;
+    personal=`
+        <div>
+            <label>👮 Funcionario</label>
+            <b>${esc(find(people,u.funcionario_id,"nombre"))}</b>
+        </div>
+        <div>
+            <label>🕐 Entrada</label>
+            <b>${esc(u.hora_entrada || "-")}</b>
+        </div>
+        <div>
+            <label>🕐 Salida</label>
+            <b>${esc(u.hora_salida || "-")}</b>
+        </div>
+    `;
+}
+else if(type==="pareja"){
+          titulo=`🚶 Pareja en recorrido`;
         personal=`
           <div><label>Oficial 1</label><b>${esc(oficial1)}</b></div>
           <div><label>Oficial 2</label><b>${esc(oficial2)}</b></div><div><label>Oficial 3</label><b>${esc(apoyo)}</b></div>
