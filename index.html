@@ -58,7 +58,19 @@
     <p class="small">
       Seleccioná los funcionarios y establecé el horario de entrada y salida.
     </p>
+<div class="card">
+  <div class="grid">
+    <div>
+      <label>👮 Oficial de guardia</label>
+      <select id="oficialGuardia"></select>
+    </div>
 
+    <div>
+      <label>📻 Despachador</label>
+      <select id="despachador"></select>
+    </div>
+  </div>
+</div>
     <div class="card">
       <h3>🚔 Operaciones</h3>
       <div id="personalOperaciones"></div>
@@ -122,7 +134,21 @@ async function signOut(){await sb.auth.signOut();showLogin()}
 function showLogin(){login.classList.remove("hidden");app.classList.add("hidden")}
 async function showApp(){login.classList.add("hidden");app.classList.remove("hidden");await loadAll();go("inicio")}
 function go(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(p).classList.add("active");if(p==="rol")renderUnits();if(p==="historial")renderHistory()}
-async function fillCommandSelects(){   const ids=["roleGroup","roleLeader","roleChief","roleDeputy","roleDistrict"];   ids.forEach(id=>{     const s=document.getElementById(id);     if(!s)return;     const current=s.value;     s.innerHTML='<option value="">— Seleccionar —</option>'+       people.filter(p=>p.estado==="Disponible").map(p=>         `<option value="${p.id}" ${p.id===current?"selected":""}>${esc(p.nombre)}${p.funcion?` — ${esc(p.funcion)}`:""}</option>`       ).join("");   }); }  async function loadAll(){let [p,c,r]=await Promise.all([sb.from("personal").select("*").order("nombre"),sb.from("patrullas").select("*").order("numero"),sb.from("roles").select("*").order("created_at")]);if(p.error||c.error||r.error)return alert((p.error||c.error||r.error).message);people=p.data||[];cars=c.data||[];roles=r.data||[];fillCommandSelects();refresh()}
+function fillCommandSelects(){
+  const ids=["roleGroup","roleLeader","roleChief","roleDeputy","roleDistrict","oficialGuardia","despachador"];
+
+  ids.forEach(id=>{
+    const s=document.getElementById(id);
+    if(!s)return;
+
+    const current=s.value;
+
+    s.innerHTML='<option value="">— Seleccionar —</option>'+
+      people.filter(p=>p.estado==="Disponible").map(p=>
+        `<option value="${p.id}" ${p.id===current?"selected":""}>${esc(p.nombre)}${p.funcion?` — ${esc(p.funcion)}`:""}</option>`
+      ).join("");
+  });
+}
 async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personRole.value="";await loadAll()}}
 async function delPerson(id){
   if(confirm("¿Eliminar funcionario?")){
@@ -255,7 +281,9 @@ async function saveRole(){
     encargado_escuadra:roleLeader.value,
     jefe_servicio:roleChief.value,
     subjefe_servicio:roleDeputy.value,
-    jefe_distrital:roleDistrict.value
+   jefe_distrital:roleDistrict.value,
+oficial_guardia:oficialGuardia.value || null,
+despachador:despachador.value || null
 }).select().single();
 
   if(rr.error)return alert(rr.error.message);
