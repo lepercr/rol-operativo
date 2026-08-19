@@ -203,7 +203,32 @@ async function showReport(r){
   `;
 }
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
-async function openRole(id){let r=roles.find(x=>x.id===id);if(r){await showReport(r);go("informe")}}
+async function openRole(id){
+  const r=roles.find(x=>x.id===id);
+  if(!r)return;
+
+  const u=await getUnits(id);
+
+  draft=u.map(x=>({
+    car:x.patrulla_id||"",
+    driver:x.chofer_id||"",
+    comp:x.acompanante_id||"",
+    support:x.apoyo_id||"",
+    breakfast:x.desayuno||"",
+    lunch:x.almuerzo||"",
+    coffee:x.cafe||"",
+    sector:x.sector||"",
+    tasks:x.labores||"",
+    unitType:x.tipo_unidad||"patrulla",
+    area:x.area||"",
+    funcionario_id:x.funcionario_id||"",
+    hora_entrada:x.hora_entrada||"",
+    hora_salida:x.hora_salida||""
+  }));
+
+  await showReport(r);
+  go("informe");
+}
 async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;let us=await getUnits(id);draft=us.map(x=>({car:x.patrulla_id,driver:x.chofer_id,comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";go("rol")}
 function refresh(){kPeople.textContent=people.length;kCars.textContent=cars.length;kRoles.textContent=roles.length;renderPeople();renderCars()}
 (async()=>{let s=await sb.auth.getSession();s.data.session?showApp():showLogin()})();
