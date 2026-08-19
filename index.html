@@ -93,15 +93,18 @@ let rows=draft.map(u=>({
   rol_id:rr.data.id,
   owner_id:user.id,
   tipo_unidad:u.unitType||"patrulla",
-  patrulla_id:u.car||null,
-  chofer_id:u.driver||null,
-  acompanante_id:u.comp||null,
-  apoyo_id:u.support||null,
-  desayuno:u.breakfast||null,
-  almuerzo:u.lunch||null,
-  cafe:u.coffee||null,
-  sector:u.sector||null,
-  labores:u.tasks||null
+patrulla_id:u.car||null,
+chofer_id:u.driver||null,
+acompanante_id:u.comp||null,
+apoyo_id:u.support||null,
+funcionario_id:u.funcionario_id||null,
+hora_entrada:u.hora_entrada||null,
+hora_salida:u.hora_salida||null,
+desayuno:u.breakfast||null,
+almuerzo:u.lunch||null,
+cafe:u.coffee||null,
+sector:u.sector||null,
+labores:u.tasks||null
 }));
 
   let ir=await sb.from("asignaciones").insert(rows);
