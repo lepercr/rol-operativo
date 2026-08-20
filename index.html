@@ -123,16 +123,76 @@
 </main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+if(typeof supabase==="undefined"){
+  alert("No se pudo cargar Supabase. Revisá la conexión a internet y recargá la página.");
+  throw new Error("Supabase no cargó");
+}
 const sb=supabase.createClient("https://twnpkicoenwonvvxcqjm.supabase.co","sb_publishable_JI19iTrqw0ywlmx7vhCM9w_QYCmrDmA");
 let people=[],cars=[],roles=[],personalRol=[],draft=[];
+
+const roleDateEl=document.getElementById("roleDate");
+if(roleDateEl && !roleDateEl.value){
+  roleDateEl.value=new Date().toISOString().slice(0,10);
+}
+
 document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>go(b.dataset.p));
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const msg=t=>authMsg.textContent=t;
-async function signIn(){msg("Ingresando...");let r=await sb.auth.signInWithPassword({email:email.value.trim(),password:password.value});msg(r.error?r.error.message:"Sesión iniciada.");if(!r.error)await showApp()}
-async function signUp(){msg("Creando cuenta...");let r=await sb.auth.signUp({email:email.value.trim(),password:password.value});msg(r.error?r.error.message:"Cuenta creada. Si pide confirmación, confirmá el correo y luego iniciá sesión.")}
-async function signOut(){await sb.auth.signOut();showLogin()}
-function showLogin(){login.classList.remove("hidden");app.classList.add("hidden")}
-async function showApp(){login.classList.add("hidden");app.classList.remove("hidden");await loadAll();go("inicio")}
+const msg=t=>document.getElementById("authMsg").textContent=t;
+
+async function signIn(){
+  const mail=document.getElementById("email").value.trim();
+  const pass=document.getElementById("password").value;
+  if(!mail || !pass){
+    msg("Ingresá tu correo y contraseña.");
+    return;
+  }
+  msg("Ingresando...");
+  try{
+    const r=await sb.auth.signInWithPassword({email:mail,password:pass});
+    if(r.error){
+      msg(r.error.message);
+      return;
+    }
+    msg("Sesión iniciada.");
+    await showApp();
+  }catch(err){
+    console.error(err);
+    msg("No se pudo iniciar sesión. Revisá tu conexión y volvé a intentarlo.");
+  }
+}
+
+async function signUp(){
+  const mail=document.getElementById("email").value.trim();
+  const pass=document.getElementById("password").value;
+  if(!mail || !pass){
+    msg("Ingresá tu correo y contraseña.");
+    return;
+  }
+  msg("Creando cuenta...");
+  try{
+    const r=await sb.auth.signUp({email:mail,password:pass});
+    msg(r.error?r.error.message:"Cuenta creada. Si pide confirmación, confirmá el correo y luego iniciá sesión.");
+  }catch(err){
+    console.error(err);
+    msg("No se pudo crear la cuenta. Revisá tu conexión.");
+  }
+}
+
+async function signOut(){
+  try{await sb.auth.signOut();}finally{showLogin();}
+}
+
+function showLogin(){
+  document.getElementById("login").classList.remove("hidden");
+  document.getElementById("app").classList.add("hidden");
+}
+
+async function showApp(){
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  const ok=await loadAll();
+  if(ok!==false) go("inicio");
+}
 function go(p){
   document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
   document.getElementById(p).classList.add("active");
@@ -174,17 +234,30 @@ function fillCommandSelects(){
   });
 }
 async function loadAll(){
-  const [p,c,r,pr] = await Promise.all([
-    sb.from("personal").select("*").order("nombre"),
-    sb.from("patrullas").select("*").order("numero"),
-    sb.from("roles").select("*").order("created_at"),
-    sb.from("personal_rol").select("*").order("created_at")
-  ]);
-  if(p.error || c.error || r.error || pr.error){
-    return alert((p.error || c.error || r.error || pr.error).message);
+  try{
+    const [p,c,r,pr] = await Promise.all([
+      sb.from("personal").select("*").order("nombre"),
+      sb.from("patrullas").select("*").order("numero"),
+      sb.from("roles").select("*").order("created_at"),
+      sb.from("personal_rol").select("*").order("created_at")
+    ]);
+    if(p.error || c.error || r.error || pr.error){
+      const err=(p.error || c.error || r.error || pr.error);
+      alert(err.message);
+      return false;
+    }
+    people=p.data||[];
+    cars=c.data||[];
+    roles=r.data||[];
+    personalRol=pr.data||[];
+    fillCommandSelects();
+    refresh();
+    return true;
+  }catch(err){
+    console.error(err);
+    alert("No se pudieron cargar los datos. Revisá la conexión e intentá nuevamente.");
+    return false;
   }
-  people=p.data||[]; cars=c.data||[]; roles=r.data||[]; personalRol=pr.data||[];
-  fillCommandSelects(); refresh();
 }
 async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personRole.value="";await loadAll()}}
 async function delPerson(id){
@@ -247,6 +320,10 @@ async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol ante
 async function saveRole(){
   const officeRows=[...document.querySelectorAll(".personal-rol-row")].filter(row=>row.querySelector(".rol-persona").value);
   if(!draft.length&&!officeRows.length)return alert("Agregá una unidad operativa o personal de oficina.");
+  if(!roleDate.value)return alert("Seleccioná la fecha del rol.");
+
+  const {data:{user},error:userError}=await sb.auth.getUser();
+  if(userError || !user)return alert("No hay un usuario autenticado. Volvé a iniciar sesión.");
 
   for(let u of draft){
     let type=u.unitType||"patrulla";
@@ -294,10 +371,6 @@ despachador:despachador.value || null
 }).select().single();
 
   if(rr.error)return alert(rr.error.message);
-
- const {data:{user}}=await sb.auth.getUser();
-if(!user)return alert("No hay un usuario autenticado.");
-
 let rows=draft.map(u=>({
   rol_id:rr.data.id,
   owner_id:user.id,
@@ -313,11 +386,13 @@ let rows=draft.map(u=>({
   labores:u.tasks||null
 }));
 
-  let ir=await sb.from("asignaciones").insert(rows);
+  if(rows.length){
+    let ir=await sb.from("asignaciones").insert(rows);
 
-  if(ir.error){
-    await sb.from("roles").delete().eq("id",rr.data.id);
-    return alert(ir.error.message);
+    if(ir.error){
+      await sb.from("roles").delete().eq("id",rr.data.id);
+      return alert(ir.error.message);
+    }
   }
 
   const personalRol=officeRows.map(row=>({
@@ -449,5 +524,15 @@ function renderHistory(){historyList.innerHTML=roles.length?roles.slice().revers
 async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
 async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;let us=await getUnits(id);draft=us.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(id);roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();go("rol");}
 function refresh(){kPeople.textContent=people.length;kCars.textContent=cars.length;kRoles.textContent=roles.length;renderPeople();renderCars()}
-(async()=>{let s=await sb.auth.getSession();s.data.session?showApp():showLogin()})();
+(async()=>{
+  try{
+    const s=await sb.auth.getSession();
+    if(s.data && s.data.session) await showApp();
+    else showLogin();
+  }catch(err){
+    console.error(err);
+    showLogin();
+    msg("No se pudo verificar la sesión. Podés intentar iniciar sesión nuevamente.");
+  }
+})();
 </script></body></html>
