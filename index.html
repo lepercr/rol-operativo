@@ -343,55 +343,75 @@ if(personalRol.length){
 }
 function find(a,id,k){let x=a.find(y=>y.id===id);return x?x[k]:"—"}
 async function showReport(r){
-  const [us,office]=await Promise.all([getUnits(r.id),getPersonalRol(r.id)]);
-  const operationalHtml=us.length?us.map(u=>{
-    let type=u.tipo_unidad||"patrulla",
-        oficial1=find(people,u.chofer_id,"nombre"),
-        oficial2=find(people,u.acompanante_id,"nombre"),
-        apoyo=find(people,u.apoyo_id,"nombre"),
-        vehiculo=find(cars,u.patrulla_id,"numero"),
-        titulo="",
-        personal="";
+  const [us, office] = await Promise.all([getUnits(r.id), getPersonalRol(r.id)]);
 
-    if(type==="pareja"){
-      titulo="🚶 Pareja en recorrido";
-      personal=`<div><label>Oficial 1</label><b>${esc(oficial1)}</b></div>
-                <div><label>Oficial 2</label><b>${esc(oficial2)}</b></div>
-                ${apoyo!=="—"?`<div><label>Oficial 3</label><b>${esc(apoyo)}</b></div>`:""}`;
-    }else if(type==="moto"){
-      titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;
-      personal=`<div><label>Oficial</label><b>${esc(oficial1)}</b></div>
-                ${oficial2!=="—"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:""}
-                ${apoyo!=="—"?`<div><label>Apoyo</label><b>${esc(apoyo)}</b></div>`:""}`;
-    }else{
-      titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;
-      personal=`<div><label>Chofer</label><b>${esc(oficial1)}</b></div>
-                ${oficial2!=="—"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:""}
-                ${apoyo!=="—"?`<div><label>Apoyo</label><b>${esc(apoyo)}</b></div>`:""}`;
+  const operationalHtml = us.length ? us.map(u => {
+    const type = u.tipo_unidad || "patrulla";
+    const oficial1 = find(people,u.chofer_id,"nombre");
+    const oficial2 = find(people,u.acompanante_id,"nombre");
+    const apoyo = find(people,u.apoyo_id,"nombre");
+    const vehiculo = find(cars,u.patrulla_id,"numero");
+    let titulo = "";
+    let personal = "";
+
+    if(type === "pareja"){
+      titulo = "🚶 Pareja en recorrido";
+      personal = `<div><label>Oficial 1</label><b>${esc(oficial1)}</b></div>
+                  <div><label>Oficial 2</label><b>${esc(oficial2)}</b></div>
+                  ${apoyo !== "—" ? `<div><label>Oficial 3</label><b>${esc(apoyo)}</b></div>` : ""}`;
+    } else if(type === "moto"){
+      titulo = `🏍️ Moto ${vehiculo !== "—" ? esc(vehiculo) : ""}`;
+      personal = `<div><label>Oficial</label><b>${esc(oficial1)}</b></div>
+                  ${oficial2 !== "—" ? `<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>` : ""}
+                  ${apoyo !== "—" ? `<div><label>Apoyo</label><b>${esc(apoyo)}</b></div>` : ""}`;
+    } else {
+      titulo = `🚓 Patrulla ${vehiculo !== "—" ? esc(vehiculo) : ""}`;
+      personal = `<div><label>Chofer</label><b>${esc(oficial1)}</b></div>
+                  <div><label>Acompañante</label><b>${esc(oficial2)}</b></div>
+                  ${apoyo !== "—" ? `<div><label>Apoyo</label><b>${esc(apoyo)}</b></div>` : ""}`;
     }
 
     return `<div class="card">
       <h3>${titulo}</h3>
       <div class="grid">
         ${personal}
-        <div>
-          <label>🍽️ Alimentación</label>
-          <div>🍳 ${esc(u.desayuno||"-")} &nbsp;&nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp;&nbsp; ☕ ${esc(u.cafe||"-")}</div>
-        </div>
-        <div>
-          <label>📍 Sector</label>
-          <b>${esc(u.sector||"-")}</b>
-        </div>
+        <div><label>🍽️ Alimentación</label><div>🍳 ${esc(u.desayuno||"-")} &nbsp;&nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp;&nbsp; ☕ ${esc(u.cafe||"-")}</div></div>
+        <div><label>📍 Sector</label><b>${esc(u.sector||"-")}</b></div>
       </div>
-      <div style="margin-top:10px">
-        <label>🎯 Labores</label>
-        <div>${esc(u.labores||"-")}</div>
-      </div>
+      <div style="margin-top:10px"><label>🎯 Labores</label><div>${esc(u.labores||"-")}</div></div>
     </div>`;
-  }).join(""):`<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
-  const order=["Operaciones","Programas","Armería","Labores Mixtas"],icons={"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"🔄"};
-  const officeHtml=office.length?order.map(area=>{let rows=office.filter(x=>x.area===area);if(!rows.length)return "";return `<div class="card"><h3>${icons[area]} ${esc(area)}</h3>${rows.map(x=>`<div class="grid"><div><label>Funcionario</label><b>${esc(find(people,x.funcionario_id,"nombre"))}</b></div><div><label>Horario</label><b>${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</b></div></div>`).join("")}</div>`;}).join(""):`<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
-  report.innerHTML=`<div class="reportHead"><b>ROL DE SERVICIO OPERATIVO</b><div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>${r.encargado_grupo?`<div>Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}${r.encargado_escuadra?`<div>Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}${r.jefe_servicio?`<div>Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}${r.subjefe_servicio?`<div>Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}${r.jefe_distrital?`<div>Jefe distrital en servicio: ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}<div class="card"><b>Total de unidades operativas: ${us.length}</b><br><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
+  }).join("") : `<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
+
+  const order = ["Operaciones","Programas","Armería","Labores Mixtas"];
+  const icons = {"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"📋"};
+  const officeItems = order.map(area => {
+    const rows = office.filter(x => x.area === area);
+    return rows.map(x => `<div style="padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px">
+      <div style="font-weight:800;margin-bottom:6px">${icons[area]} ${esc(area)}</div>
+      <div><b>${esc(find(people,x.funcionario_id,"nombre"))}</b></div>
+      <div class="small" style="margin-top:4px">${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</div>
+    </div>`).join("");
+  }).join("");
+
+  const officeHtml = officeItems ? `<div class="card">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;max-width:720px">
+      ${officeItems}
+    </div>
+  </div>` : `<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
+
+  report.innerHTML = `<div class="reportHead">
+    <b>ROL DE SERVICIO OPERATIVO</b>
+    <div>${r.fecha ? esc(r.fecha.split("-").reverse().join("/")) : ""} — Horario: ${esc(r.turno||"")}</div>
+    ${r.encargado_grupo ? `<div>Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>` : ""}
+    ${r.encargado_escuadra ? `<div>Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>` : ""}
+    ${r.jefe_servicio ? `<div>Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>` : ""}
+    ${r.subjefe_servicio ? `<div>Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>` : ""}
+    ${r.jefe_distrital ? `<div>Jefe distrital en servicio: ${esc(find(people,r.jefe_distrital,"nombre"))}</div>` : ""}
+  </div>
+  <h2>🚓 Unidades operativas</h2>${operationalHtml}
+  <h2>🏢 Personal de oficina</h2>${officeHtml}
+  <div class="card"><b>Total de unidades operativas: ${us.length}</b><br><b>Total de personal de oficina: ${office.length}</b></div>
+  <div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
 }
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
 async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
