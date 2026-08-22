@@ -448,11 +448,11 @@ async function showReport(r){
   report.innerHTML=`<div class="reportHead">
     <b>ROL DE SERVICIO OPERATIVO</b>
     <div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>
-    ${r.encargado_grupo?`<div>Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
-    ${r.encargado_escuadra?`<div>Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
     ${r.jefe_servicio?`<div>Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}
     ${r.subjefe_servicio?`<div>Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}
     ${r.jefe_distrital?`<div>Jefe distrital en servicio: ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}
+    ${r.encargado_grupo?`<div>Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
+    ${r.encargado_escuadra?`<div>Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
     ${r.oficial_guardia?`<div>Oficial de guardia: ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
     ${r.despachador?`<div>Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}
   </div>
