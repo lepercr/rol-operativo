@@ -378,20 +378,20 @@ async function showReport(r){
         if(type==="pareja"){
           titulo="👮 Pareja en recorrido";
           personal=
-            `<div><label>Oficial 1</label><b>${esc(oficial1)}</b></div>`+
-            `<div><label>Oficial 2</label><b>${esc(oficial2)}</b></div>`+
-            (apoyo!=="—"?`<div><label>Oficial 3</label><b>${esc(apoyo)}</b></div>`:"");
+            `<div><label>Oficial 1</label><b>👮 ${esc(oficial1)}</b></div>`+
+            `<div><label>Oficial 2</label><b>👮 ${esc(oficial2)}</b></div>`+
+            (apoyo!=="—"?`<div><label>Oficial 3</label><b>👮 ${esc(apoyo)}</b></div>`:"");
         }else if(type==="moto"){
           titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;
           personal=
-            `<div><label>Oficial</label><b>${esc(oficial1)}</b></div>`+
-            (oficial2!=="—"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:"");
+            `<div><label>Oficial</label><b>👮 ${esc(oficial1)}</b></div>`+
+            (oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:"");
         }else{
           titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;
           personal=
-            `<div><label>Chofer</label><b>${esc(oficial1)}</b></div>`+
-            (oficial2!=="—"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:"")+
-            (apoyo!=="—"?`<div><label>Apoyo</label><b>${esc(apoyo)}</b></div>`:"");
+            `<div><label>Chofer</label><b>👮 ${esc(oficial1)}</b></div>`+
+            (oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:"")+
+            (apoyo!=="—"?`<div><label>Apoyo</label><b>👮 ${esc(apoyo)}</b></div>`:"");
         }
 
         return `<div class="card">
@@ -436,7 +436,7 @@ async function showReport(r){
             return `<div class="office-cell">
               <div class="office-area">${icons[area]} ${esc(area.toUpperCase())}</div>
               ${rows.map(x=>`<div class="office-entry">
-                <div class="office-name">${esc(find(people,x.funcionario_id,"nombre"))}</div>
+                <div class="office-name">👮 ${esc(find(people,x.funcionario_id,"nombre"))}</div>
                 <div class="office-hours">${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</div>
               </div>`).join("")}
             </div>`;
@@ -448,13 +448,13 @@ async function showReport(r){
   report.innerHTML=`<div class="reportHead">
     <b>ROL DE SERVICIO OPERATIVO</b>
     <div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>
-    ${r.jefe_servicio?`<div>Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}
-    ${r.subjefe_servicio?`<div>Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}
-    ${r.jefe_distrital?`<div>Jefe distrital en servicio: ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}
-    ${r.encargado_grupo?`<div>Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
-    ${r.encargado_escuadra?`<div>Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
-    ${r.oficial_guardia?`<div>Oficial de guardia: ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
-    ${r.despachador?`<div>Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}
+    ${r.jefe_servicio?`<div>Jefe en servicio: 👮 ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}
+    ${r.subjefe_servicio?`<div>Subjefe en servicio: 👮 ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}
+    ${r.jefe_distrital?`<div>Jefe distrital en servicio: 👮 ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}
+    ${r.encargado_grupo?`<div>Encargado de grupo: 👮 ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
+    ${r.encargado_escuadra?`<div>Encargado de escuadra: 👮 ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
+    ${r.oficial_guardia?`<div>Oficial de guardia: 👮 ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
+    ${r.despachador?`<div>Despachador: 👮 ${esc(find(people,r.despachador,"nombre"))}</div>`:""}
   </div>
   <h2>🚓 Unidades operativas</h2>
   ${operationalHtml}
