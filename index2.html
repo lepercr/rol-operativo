@@ -3,12 +3,15 @@
 <meta name="theme-color" content="#111827"><link rel="manifest" href="manifest.json">
 <title>Rol Operativo</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{background:#111827;color:white;padding:18px}.wrap{max-width:1050px;margin:auto;padding:14px}h1{margin:0;font-size:23px}.sub{opacity:.75;font-size:13px}nav{display:flex;gap:6px;overflow:auto;background:white;padding:8px;position:sticky;top:0;z-index:5;border-bottom:1px solid #ddd}button{border:0;border-radius:10px;padding:11px 14px;background:#111827;color:white;font-weight:700}button.secondary{background:#e5e7eb;color:#111827}button.danger{background:#fee2e2;color:#991b1b}.page{display:none}.page.active{display:block}.card{background:white;border-radius:14px;padding:15px;margin:12px 0;box-shadow:0 2px 9px #0001}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}label{display:block;font-size:12px;font-weight:800;color:#4b5563;margin-bottom:5px}input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:9px;font:inherit}textarea{min-height:95px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.item{border:1px solid #e5e7eb;border-radius:12px;padding:13px;margin:9px 0}.small{font-size:12px;color:#6b7280}.notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px}.reportHead{background:#111827;color:white;padding:16px}.reportItem{background:white;border:1px solid #ddd;border-top:0;padding:15px}.reportGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.login{max-width:430px;margin:7vh auto}.hidden{display:none!important}.office-card{background:white;border-radius:18px;padding:20px 28px;margin:18px 0;box-shadow:0 2px 9px #0001}.office-title{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;letter-spacing:.5px;border-bottom:1px solid #374151;padding-bottom:10px;margin-bottom:14px}.office-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 34px;max-width:650px}.office-cell{min-height:92px;border-left:1px solid #d1d5db;padding:4px 0 4px 14px}.office-area{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;letter-spacing:.3px;margin-bottom:8px}.office-entry{margin-bottom:8px}.office-name{font-size:15px;font-weight:600}.office-hours{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;margin-top:3px}.office-cell.empty{opacity:.65}@media(max-width:640px){.office-card{padding:16px}.office-grid{grid-template-columns:1fr;gap:12px}}@media print{header,nav,.no-print{display:none!important}body{background:white}.office-card{box-shadow:none;border:1px solid #ddd}}
+*{box-sizing:border-box}body{margin:0;background:#f3f4f6;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}header{background:#111827;color:white;padding:18px}.wrap{max-width:1050px;margin:auto;padding:14px}h1{margin:0;font-size:23px}.sub{opacity:.75;font-size:13px}nav{display:flex;gap:6px;overflow:auto;background:white;padding:8px;position:sticky;top:0;z-index:5;border-bottom:1px solid #ddd}button{border:0;border-radius:10px;padding:11px 14px;background:#111827;color:white;font-weight:700}button.secondary{background:#e5e7eb;color:#111827}button.danger{background:#fee2e2;color:#991b1b}.page{display:none}.page.active{display:block}.card{background:white;border-radius:14px;padding:15px;margin:12px 0;box-shadow:0 2px 9px #0001}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}label{display:block;font-size:12px;font-weight:800;color:#4b5563;margin-bottom:5px}input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:9px;font:inherit}textarea{min-height:95px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.item{border:1px solid #e5e7eb;border-radius:12px;padding:13px;margin:9px 0}.small{font-size:12px;color:#6b7280}.notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px}.reportHead{background:#111827;color:white;padding:16px}.reportItem{background:white;border:1px solid #ddd;border-top:0;padding:15px}.reportGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.login{max-width:430px;margin:7vh auto}.hidden{display:none!important}@media print{header,nav,.no-print{display:none!important}body{background:white}}
+
+/* ===== INTERFAZ MODERNA 2.0 ===== */
+:root{--ink:#0f172a;--blue:#163a5f;--blue2:#1f5f8b;--line:#e2e8f0;--muted:#64748b;--bg:#eef3f8}body{background:linear-gradient(180deg,#eef3f8 0,#f8fafc 35%,#eef3f8 100%)}header{background:linear-gradient(135deg,#0f172a,#163a5f);padding:24px 18px;box-shadow:0 8px 24px #0f172a33}header h1{font-size:28px}.sub{margin-top:4px}nav{max-width:1050px;margin:0 auto;border-radius:0 0 18px 18px;box-shadow:0 8px 20px #0f172a12;padding:10px}nav button{background:#f8fafc;color:#334155}nav button:hover{background:#e8f0f7}.wrap{max-width:1120px;padding:20px}.card,.item{border:1px solid var(--line);box-shadow:0 10px 30px #0f172a0d}.card{border-radius:20px;padding:22px}.item{border-radius:16px}input,select,textarea{border-color:#cbd5e1;background:#fff;transition:.2s}input:focus,select:focus,textarea:focus{outline:0;border-color:#1f5f8b;box-shadow:0 0 0 3px #1f5f8b22}button{background:linear-gradient(135deg,#163a5f,#1f5f8b);box-shadow:0 6px 16px #163a5f22;transition:.2s}button:hover{transform:translateY(-1px);box-shadow:0 10px 20px #163a5f33}.dashboard-hero{background:radial-gradient(circle at top right,#ffffff22,transparent 30%),linear-gradient(135deg,#0f172a,#163a5f);color:white;border-radius:24px;padding:32px;display:flex;justify-content:space-between;gap:20px;align-items:center;box-shadow:0 18px 38px #0f172a26}.dashboard-hero h2{font-size:32px;margin:5px 0}.dashboard-hero p{max-width:600px;opacity:.8;line-height:1.6}.eyebrow,.section-kicker{font-size:11px;font-weight:800;letter-spacing:1.5px;opacity:.7}.dashboard-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.dashboard-actions button{background:white;color:#163a5f}.dashboard-actions .secondary{background:#ffffff18;color:white;border:1px solid #ffffff33}.hero-badge{min-width:190px;padding:18px;border-radius:18px;background:#ffffff12;border:1px solid #ffffff24;display:flex;gap:12px;align-items:center}.hero-badge-icon{font-size:38px}.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0}.stat-card{background:white;border:1px solid var(--line);border-radius:20px;padding:22px;display:flex;gap:15px;align-items:center;box-shadow:0 8px 22px #0f172a0b}.stat-icon{width:54px;height:54px;border-radius:16px;background:#eef5fb;display:grid;place-items:center;font-size:27px}.stat-number{font-size:30px;font-weight:850}.stat-label{font-size:13px;color:var(--muted);margin-top:4px}.quick-section{background:white;border:1px solid var(--line);border-radius:22px;padding:24px}.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}.quick-card{background:#f8fafc;color:#0f172a;border:1px solid var(--line);text-align:left;display:flex;align-items:center;gap:13px}.quick-card strong{display:block}.quick-card small{display:block;color:var(--muted);margin-top:4px}.quick-icon{font-size:24px;width:46px;height:46px;display:grid;place-items:center;background:white;border-radius:14px}.quick-card span:nth-child(2){flex:1}.quick-arrow{font-size:20px;color:var(--muted)}@media(max-width:700px){header h1{font-size:24px}.dashboard-hero{display:block;padding:24px}.dashboard-hero h2{font-size:27px}.hero-badge{margin-top:18px}.stats-grid,.quick-grid{grid-template-columns:1fr}.card{padding:16px}.wrap{padding:14px}}
 </style></head><body>
 <header><div class="wrap"><h1>🚓 Rol Operativo</h1><div class="sub">Planificación del servicio · Desarrollado por Leonel Pérez Gallardo · Versión 1.0</div></div></header>
 <section id="login" class="login card"><h2>🔐 Acceso</h2><p class="small">Ingresá con tu cuenta autorizada.</p><label>Correo</label><input id="email" type="email"><label style="margin-top:10px">Contraseña</label><input id="password" type="password"><div class="actions"><button onclick="signIn()">Iniciar sesión</button><button class="secondary" onclick="signUp()">Crear cuenta</button></div><p id="authMsg" class="small"></p></section>
 <div id="app" class="hidden"><nav><button data-p="inicio">Inicio</button><button data-p="personal">👮 Personal</button><button data-p="patrullas">🚓 Patrullas</button><button data-p="rol">📋 Nuevo rol</button><button data-p="historial">📚 Historial</button><button onclick="signOut()" class="secondary">Salir</button></nav><main class="wrap">
-<section id="inicio" class="page active"><div class="card"><h2>Panel</h2><div class="grid"><div><b id="kPeople">0</b><div class="small">Funcionarios</div></div><div><b id="kCars">0</b><div class="small">Patrullas</div></div><div><b id="kRoles">0</b><div class="small">Roles</div></div></div></div><div class="card"><div class="actions"><button onclick="go('rol')">📋 Crear rol</button><button class="secondary" onclick="go('personal')">➕ Personal</button><button class="secondary" onclick="go('patrullas')">🚓 Patrulla</button></div></div></section>
+<section id="inicio" class="page active"><div class="dashboard-hero"><div><div class="eyebrow">🚓 SISTEMA DE PLANIFICACIÓN OPERATIVA</div><h2>Centro de control</h2><p>Gestioná personal, unidades y roles de servicio desde un solo lugar.</p><div class="dashboard-actions"><button onclick="go('rol')">📋 Crear nuevo rol</button><button class="secondary" onclick="go('historial')">📚 Ver historial</button></div></div><div class="hero-badge"><div class="hero-badge-icon">🚔</div><div><div class="eyebrow">ESTADO</div><strong>Operativo</strong></div></div></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon">👮</div><div><div class="stat-number" id="kPeople">0</div><div class="stat-label">Funcionarios registrados</div></div></div><div class="stat-card"><div class="stat-icon">🚓</div><div><div class="stat-number" id="kCars">0</div><div class="stat-label">Unidades registradas</div></div></div><div class="stat-card"><div class="stat-icon">📋</div><div><div class="stat-number" id="kRoles">0</div><div class="stat-label">Roles creados</div></div></div></div><div class="quick-section"><div class="section-kicker">ACCESO RÁPIDO</div><h2>¿Qué necesitás hacer?</h2><div class="quick-grid"><button class="quick-card" onclick="go('rol')"><span class="quick-icon">📋</span><span><strong>Crear rol</strong><small>Organizá el próximo servicio</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('personal')"><span class="quick-icon">👮</span><span><strong>Gestionar personal</strong><small>Administrá funcionarios</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('patrullas')"><span class="quick-icon">🚓</span><span><strong>Gestionar unidades</strong><small>Administrá patrullas</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('historial')"><span class="quick-icon">📚</span><span><strong>Consultar historial</strong><small>Revisá roles anteriores</small></span><b class="quick-arrow">→</b></button></div></div></section>
 <section id="personal" class="page"><div class="card"><h2>👮 Personal</h2><div class="grid"><div><label>Nombre completo</label><input id="personName"></div><div><label>Función / puesto</label><input id="personRole"></div><div><label>Estado</label><select id="personState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addPerson()">➕ Agregar funcionario</button></div></div><div class="card" id="peopleList"></div></section>
 <section id="patrullas" class="page"><div class="card"><h2>🚓 Patrullas</h2><div class="grid"><div><label>Número</label><input id="carNumber"></div><div><label>Tipo</label><input id="carType" placeholder="Patrulla"></div><div><label>Estado</label><select id="carState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addCar()">➕ Agregar patrulla</button></div></div><div class="card" id="carsList"></div></section>
 <section id="rol" class="page">
@@ -27,8 +30,13 @@
       </div>
 
       <div>
-        <label>Jefe en servicio</label>
-        <select id="roleChief"></select>
+        <label>Encargado de grupo</label>
+        <select id="roleGroup"></select>
+      </div>
+
+      <div>
+        <label>Encargado de escuadra</label>
+        <select id="roleLeader"></select>
       </div>
 
       <div>
@@ -42,13 +50,8 @@
       </div>
 
       <div>
-        <label>Encargado de grupo</label>
-        <select id="roleGroup"></select>
-      </div>
-
-      <div>
-        <label>Encargado de escuadra</label>
-        <select id="roleLeader"></select>
+        <label>Jefe de servicio</label>
+        <select id="roleChief"></select>
       </div>
     </div>
 
@@ -110,14 +113,11 @@
     <button type="button" onclick="addUnit()">
       ➕ Agregar unidad
     </button>
-    <button type="button" class="secondary" onclick="copyLast()">
-      📋 Copiar rol anterior
-    </button>
   </div>
 </div>
 
     <div class="actions">
-      <button type="button" onclick="saveRole()">💾 Guardar rol</button>
+      <button onclick="saveRole()">💾 Guardar rol</button>
     </div>
   </div>
 </section>
@@ -248,224 +248,109 @@ function addPersonalRolRow(area,data={}){
 async function loadPersonalRol(id){clearPersonalRol();let p=await getPersonalRol(id);p.forEach(x=>addPersonalRolRow(x.area,{funcionario_id:x.funcionario_id||"",hora_entrada:x.hora_entrada||"06:00",hora_salida:x.hora_salida||"18:00"}));return p;}
 async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");let u=await getUnits(r.id);draft=u.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(r.id);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();}
 async function saveRole(){
-  try{
-    const officeRows=[...document.querySelectorAll(".personal-rol-row")]
-      .filter(row=>row.querySelector(".rol-persona")?.value);
+  const officeRows=[...document.querySelectorAll(".personal-rol-row")].filter(row=>row.querySelector(".rol-persona").value);
+  if(!draft.length&&!officeRows.length)return alert("Agregá una unidad operativa o personal de oficina.");
 
-    if(!draft.length&&!officeRows.length){
-      alert("Agregá una unidad operativa o personal de oficina.");
-      return;
-    }
+  for(let u of draft){
+    let type=u.unitType||"patrulla";
 
-    for(const u of draft){
-      const type=u.unitType||"patrulla";
-      if(type==="patrulla"&&!u.car)return alert("La patrulla necesita un vehículo.");
-      if(type==="patrulla"&&!u.driver)return alert("La patrulla necesita un chofer.");
-      if(type==="moto"&&!u.car)return alert("La moto necesita seleccionar una moto.");
-      if(type==="moto"&&!u.driver)return alert("La moto necesita un oficial.");
-      if(type==="pareja"&&(!u.driver||!u.comp))return alert("La pareja en recorrido necesita dos oficiales.");
-    }
+   if(type==="patrulla"&&!u.car)
+      return alert("La patrulla necesita un vehículo.");
 
-    const used=[];
-    for(const u of draft){
-      for(const id of [u.driver,u.comp,u.support]){
-        if(id){
-          if(used.includes(id))return alert("Un funcionario está asignado a más de una unidad.");
-          used.push(id);
-        }
-      }
-    }
+    if(type==="patrulla"&&!u.driver)
+      return alert("La patrulla necesita un chofer.");
 
-    const {data:{user},error:userError}=await sb.auth.getUser();
-    if(userError)throw userError;
-    if(!user)return alert("No hay un usuario autenticado. Volvé a iniciar sesión.");
+    if(type==="moto"&&!u.car)
+      return alert("La moto necesita seleccionar una moto.");
 
-    const baseRole={
-      fecha:roleDate.value||null,
-      turno:roleShift.value||null,
-      encargado:roleLeader.value||null
-    };
+    if(type==="moto"&&!u.driver)
+      return alert("La moto necesita un oficial.");
 
-    const fullRole={
-      ...baseRole,
-      encargado_grupo:roleGroup.value||null,
-      encargado_escuadra:roleLeader.value||null,
-      jefe_servicio:roleChief.value||null,
-      subjefe_servicio:roleDeputy.value||null,
-      jefe_distrital:roleDistrict.value||null,
-      oficial_guardia:oficialGuardia.value||null,
-      despachador:despachador.value||null
-    };
-
-    let rr=await sb.from("roles").insert(fullRole).select().single();
-
-    // Si la base todavía no tiene alguna de las columnas nuevas, guardá el rol básico
-    // para que el botón Guardar rol no quede bloqueado.
-    if(rr.error && /column|schema cache|could not find/i.test(rr.error.message||"")){
-      rr=await sb.from("roles").insert(baseRole).select().single();
-    }
-    if(rr.error)return alert("No se pudo guardar el rol: "+rr.error.message);
-
-    const rows=draft.map(u=>({
-      rol_id:rr.data.id,
-      owner_id:user.id,
-      tipo_unidad:u.unitType||"patrulla",
-      patrulla_id:u.car||null,
-      chofer_id:u.driver||null,
-      acompanante_id:u.comp||null,
-      apoyo_id:u.support||null,
-      desayuno:u.breakfast||null,
-      almuerzo:u.lunch||null,
-      cafe:u.coffee||null,
-      sector:u.sector||null,
-      labores:u.tasks||null
-    }));
-
-    if(rows.length){
-      let ir=await sb.from("asignaciones").insert(rows);
-      // Compatibilidad con una tabla anterior que todavía no tenga owner_id.
-      if(ir.error && /owner_id|column|schema cache|could not find/i.test(ir.error.message||"")){
-        const oldRows=rows.map(({owner_id,...row})=>row);
-        ir=await sb.from("asignaciones").insert(oldRows);
-      }
-      if(ir.error){
-        await sb.from("roles").delete().eq("id",rr.data.id);
-        return alert("No se pudieron guardar las unidades: "+ir.error.message);
-      }
-    }
-
-    const personalRol=officeRows.map(row=>({
-      rol_id:rr.data.id,
-      funcionario_id:row.querySelector(".rol-persona").value,
-      area:row.dataset.area,
-      hora_entrada:row.querySelector(".rol-entrada").value||null,
-      hora_salida:row.querySelector(".rol-salida").value||null
-    }));
-
-    if(personalRol.length){
-      const pr=await sb.from("personal_rol").insert(personalRol);
-      if(pr.error){
-        await sb.from("roles").delete().eq("id",rr.data.id);
-        return alert("No se pudo guardar el personal de oficina: "+pr.error.message);
-      }
-    }
-
-    draft=[];
-    clearPersonalRol();
-    await loadAll();
-    await showReport(rr.data);
-    go("informe");
-    alert("Rol guardado correctamente.");
-  }catch(err){
-    console.error("Error al guardar rol:",err);
-    alert("Error al guardar el rol: "+(err?.message||String(err)));
+    if(type==="pareja"&&(!u.driver||!u.comp))
+      return alert("La pareja en recorrido necesita dos oficiales.");
   }
+
+  let used=[];
+
+  for(let u of draft){
+    for(let id of [u.driver,u.comp,u.support]){
+      if(id){
+        if(used.includes(id))
+          return alert("Un funcionario está asignado a más de una unidad.");
+
+        used.push(id);
+      }
+    }
+  }
+
+  let rr=await sb.from("roles").insert({
+    fecha:roleDate.value,
+    turno:roleShift.value,
+    encargado:roleLeader.value,
+    encargado_grupo:roleGroup.value,
+    encargado_escuadra:roleLeader.value,
+    jefe_servicio:roleChief.value,
+    subjefe_servicio:roleDeputy.value,
+   jefe_distrital:roleDistrict.value,
+oficial_guardia:oficialGuardia.value || null,
+despachador:despachador.value || null
+}).select().single();
+
+  if(rr.error)return alert(rr.error.message);
+
+ const {data:{user}}=await sb.auth.getUser();
+if(!user)return alert("No hay un usuario autenticado.");
+
+let rows=draft.map(u=>({
+  rol_id:rr.data.id,
+  owner_id:user.id,
+  tipo_unidad:u.unitType||"patrulla",
+  patrulla_id:u.car||null,
+  chofer_id:u.driver||null,
+  acompanante_id:u.comp||null,
+  apoyo_id:u.support||null,
+  desayuno:u.breakfast||null,
+  almuerzo:u.lunch||null,
+  cafe:u.coffee||null,
+  sector:u.sector||null,
+  labores:u.tasks||null
+}));
+
+  let ir=await sb.from("asignaciones").insert(rows);
+
+  if(ir.error){
+    await sb.from("roles").delete().eq("id",rr.data.id);
+    return alert(ir.error.message);
+  }
+
+  const personalRol=officeRows.map(row=>({
+  rol_id:rr.data.id,
+  funcionario_id:row.querySelector(".rol-persona").value,
+  area:row.dataset.area,
+  hora_entrada:row.querySelector(".rol-entrada").value || null,
+  hora_salida:row.querySelector(".rol-salida").value || null
+}));
+
+if(personalRol.length){
+  const pr=await sb.from("personal_rol").insert(personalRol);
+
+  if(pr.error){
+    await sb.from("roles").delete().eq("id",rr.data.id);
+    return alert(pr.error.message);
+  }
+}
+  draft=[];
+  await loadAll();
+  await showReport(rr.data);
+  go("informe");
 }
 function find(a,id,k){let x=a.find(y=>y.id===id);return x?x[k]:"—"}
 async function showReport(r){
   const [us,office]=await Promise.all([getUnits(r.id),getPersonalRol(r.id)]);
-
-  const operationalHtml=us.length
-    ? us.map(u=>{
-        let type=u.tipo_unidad||"patrulla";
-        let oficial1=find(people,u.chofer_id,"nombre");
-        let oficial2=find(people,u.acompanante_id,"nombre");
-        let apoyo=find(people,u.apoyo_id,"nombre");
-        let vehiculo=find(cars,u.patrulla_id,"numero");
-        let titulo="";
-        let personal="";
-
-        if(type==="pareja"){
-          titulo="👮 Pareja en recorrido";
-          personal=
-            `<div><label>Oficial 1</label><b>👮 ${esc(oficial1)}</b></div>`+
-            `<div><label>Oficial 2</label><b>👮 ${esc(oficial2)}</b></div>`+
-            (apoyo!=="—"?`<div><label>Oficial 3</label><b>👮 ${esc(apoyo)}</b></div>`:"");
-        }else if(type==="moto"){
-          titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;
-          personal=
-            `<div><label>Oficial</label><b>👮 ${esc(oficial1)}</b></div>`+
-            (oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:"");
-        }else{
-          titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;
-          personal=
-            `<div><label>Chofer</label><b>👮 ${esc(oficial1)}</b></div>`+
-            (oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:"")+
-            (apoyo!=="—"?`<div><label>Apoyo</label><b>👮 ${esc(apoyo)}</b></div>`:"");
-        }
-
-        return `<div class="card">
-          <h3>${titulo}</h3>
-          <div class="grid">
-            ${personal}
-            <div>
-              <label>🍽️ Alimentación</label>
-              <div>🍳 ${esc(u.desayuno||"-")} &nbsp;&nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp;&nbsp; ☕ ${esc(u.cafe||"-")}</div>
-            </div>
-            <div>
-              <label>📍 Sector</label>
-              <b>${esc(u.sector||"-")}</b>
-            </div>
-          </div>
-          <div style="margin-top:10px">
-            <label>🎯 Labores</label>
-            <div>${esc(u.labores||"-")}</div>
-          </div>
-        </div>`;
-      }).join("")
-    : `<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
-
-  const order=["Operaciones","Programas","Armería","Labores Mixtas"];
-  const icons={"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"📋"};
-
-  const officeHtml=office.length
-    ? `<div class="office-card">
-        <div class="office-title">🏢 PERSONAL DE OFICINA</div>
-        <div class="office-grid">
-          ${order.map(area=>{
-            const rows=office.filter(x=>x.area===area);
-
-            if(!rows.length){
-              return `<div class="office-cell empty">
-                <div class="office-area">${icons[area]} ${esc(area.toUpperCase())}</div>
-                <div class="office-name">Sin asignar</div>
-                <div class="office-hours">—</div>
-              </div>`;
-            }
-
-            return `<div class="office-cell">
-              <div class="office-area">${icons[area]} ${esc(area.toUpperCase())}</div>
-              ${rows.map(x=>`<div class="office-entry">
-                <div class="office-name">👮 ${esc(find(people,x.funcionario_id,"nombre"))}</div>
-                <div class="office-hours">${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</div>
-              </div>`).join("")}
-            </div>`;
-          }).join("")}
-        </div>
-      </div>`
-    : `<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
-
-  report.innerHTML=`<div class="reportHead">
-    <b>ROL DE SERVICIO OPERATIVO</b>
-    <div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>
-    ${r.jefe_servicio?`<div>Jefe en servicio: 👮 ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}
-    ${r.subjefe_servicio?`<div>Subjefe en servicio: 👮 ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}
-    ${r.jefe_distrital?`<div>Jefe distrital en servicio: 👮 ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}
-    ${r.encargado_grupo?`<div>Encargado de grupo: 👮 ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
-    ${r.encargado_escuadra?`<div>Encargado de escuadra: 👮 ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
-    ${r.oficial_guardia?`<div>Oficial de guardia: 👮 ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
-    ${r.despachador?`<div>Despachador: 👮 ${esc(find(people,r.despachador,"nombre"))}</div>`:""}
-  </div>
-  <h2>🚓 Unidades operativas</h2>
-  ${operationalHtml}
-  ${officeHtml}
-  <div class="card">
-    <b>Total de unidades operativas: ${us.length}</b><br>
-    <b>Total de personal de oficina: ${office.length}</b>
-  </div>
-  <div class="card no-print">
-    <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
-  </div>`;
+  const operationalHtml=us.length?us.map(u=>{let type=u.tipo_unidad||"patrulla",oficial1=find(people,u.chofer_id,"nombre"),oficial2=find(people,u.acompanante_id,"nombre"),apoyo=find(people,u.apoyo_id,"nombre"),vehiculo=find(cars,u.patrulla_id,"numero"),titulo="",personal="";if(type==="pareja"){titulo="🚶 Pareja en recorrido";personal=`<div><label>Oficial 1</label><b>${esc(oficial1)}</b></div><div><label>Oficial 2</label><b>${esc(oficial2)}</b></div>${apoyo!=="—"?`<div><label>Oficial 3</label><b>${esc(apoyo)}</b></div>`:""}`;}else if(type==="moto"){titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Oficial</label><b>${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:""}`;}else{titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Chofer</label><b>${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:""}${apoyo!=="—"?`<div><label>Apoyo</label><b>${esc(apoyo)}</b></div>`:""}`;}return `<div class="card"><h3>${titulo}</h3><div class="grid">${personal}<div><label>🍽️ Alimentación</label><div>🍳 ${esc(u.desayuno||"-")} &nbsp;&nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp;&nbsp; ☕ ${esc(u.cafe||"-")}</div></div><div><label>📍 Sector</label><b>${esc(u.sector||"-")}</b></div></div><div style="margin-top:10px"><label>🎯 Labores</label><div>${esc(u.labores||"-")}</div></div></div>`;}).join(""):`<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
+  const order=["Operaciones","Programas","Armería","Labores Mixtas"],icons={"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"🔄"};
+  const officeHtml=office.length?order.map(area=>{let rows=office.filter(x=>x.area===area);if(!rows.length)return "";return `<div class="card"><h3>${icons[area]} ${esc(area)}</h3>${rows.map(x=>`<div class="grid"><div><label>Funcionario</label><b>${esc(find(people,x.funcionario_id,"nombre"))}</b></div><div><label>Horario</label><b>${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</b></div></div>`).join("")}</div>`;}).join(""):`<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
+  report.innerHTML=`<div class="reportHead"><b>ROL DE SERVICIO OPERATIVO</b><div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>${r.encargado_grupo?`<div>Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}${r.encargado_escuadra?`<div>Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}${r.jefe_servicio?`<div>Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}${r.subjefe_servicio?`<div>Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}${r.jefe_distrital?`<div>Jefe distrital en servicio: ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}<div class="card"><b>Total de unidades operativas: ${us.length}</b><br><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
 }
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
 async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
