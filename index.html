@@ -129,7 +129,7 @@ document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>go(b.da
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const msg=t=>authMsg.textContent=t;
 async function signIn(){msg("Ingresando...");let r=await sb.auth.signInWithPassword({email:email.value.trim(),password:password.value});msg(r.error?r.error.message:"Sesión iniciada.");if(!r.error)await showApp()}
-  window.signIn = signIn;
+  window.signIn = signIn; 
 async function signUp(){msg("Creando cuenta...");let r=await sb.auth.signUp({email:email.value.trim(),password:password.value});msg(r.error?r.error.message:"Cuenta creada. Si pide confirmación, confirmá el correo y luego iniciá sesión.")}
 async function signOut(){await sb.auth.signOut();showLogin()}
 function showLogin(){login.classList.remove("hidden");app.classList.add("hidden")}
