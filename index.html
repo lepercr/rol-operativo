@@ -453,6 +453,8 @@ async function showReport(r){
     ${r.jefe_servicio?`<div>Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}
     ${r.subjefe_servicio?`<div>Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}
     ${r.jefe_distrital?`<div>Jefe distrital en servicio: ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}
+    ${r.oficial_guardia?`<div>Oficial de guardia: ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
+    ${r.despachador?`<div>Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}
   </div>
   <h2>🚓 Unidades operativas</h2>
   ${operationalHtml}
