@@ -177,21 +177,16 @@ async function loadAll(){
   const [p,c,r,pr] = await Promise.all([
     sb.from("personal").select("*").order("nombre"),
     sb.from("patrullas").select("*").order("numero"),
-    sb.from("roles").select("*").order("created_at")
+    sb.from("roles").select("*").order("created_at"),
+    sb.from("personal_rol").select("*").order("created_at")
   ]);
-
-  if(p.error || c.error || r.error){
-    return alert((p.error || c.error || r.error).message);
+  if(p.error || c.error || r.error || pr.error){
+    return alert((p.error || c.error || r.error || pr.error).message);
   }
-
-  people = p.data || [];
-  console.log("FUNCIONARIOS CARGADOS:", people);
-  cars = c.data || [];
-  roles = r.data || [];
-personalRol = pr.data || [];
-  fillCommandSelects();
-  refresh();
-}async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personRole.value="";await loadAll()}}
+  people=p.data||[]; cars=c.data||[]; roles=r.data||[]; personalRol=pr.data||[];
+  fillCommandSelects(); refresh();
+}
+async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personRole.value="";await loadAll()}}
 async function delPerson(id){
   if(confirm("¿Eliminar funcionario?")){
     let r=await sb.from("personal").delete().eq("id",id);
@@ -227,87 +222,31 @@ function renderCars(){carsList.innerHTML=cars.length?cars.map(c=>`<div class=ite
 function pOpts(s){return '<option value="">— Seleccionar —</option>'+people.filter(p=>p.estado==="Disponible").map(p=>`<option value="${p.id}" ${p.id===s?"selected":""}>${esc(p.nombre)}</option>`).join("")}
 function cOpts(s){return '<option value="">— Seleccionar —</option>'+cars.filter(c=>c.estado==="Disponible").map(c=>`<option value="${c.id}" ${c.id===s?"selected":""}>${esc(c.numero)}</option>`).join("")}
 function addUnit(){draft.push({unitType:"patrulla",car:"",driver:"",comp:"",support:"",breakfast:"",lunch:"",coffee:"",sector:"",tasks:""});renderUnits()}
-  function addPersonalRolRow(area){
-  const ids={
-    "Operaciones":"personalOperaciones",
-    "Programas":"personalProgramas",
-    "Armería":"personalArmeria",
-   "Labores Mixtas":"personalLaboresMixtas"
-  };
-
-  const cont=document.getElementById(ids[area]);
-  if(!cont)return;
-
-  const disponibles=people.filter(p=>p.estado==="Disponible");
-
-  const row=document.createElement("div");
-  row.className="item personal-rol-row";
-  row.dataset.area=area;
-
-  row.innerHTML=`
-    <div class="grid">
-      <div>
-        <label>Funcionario</label>
-        <select class="rol-persona">
-          <option value="">— Seleccionar —</option>
-          ${disponibles.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join("")}
-        </select>
-      </div>
-
-      <div>
-        <label>Entrada</label>
-        <input type="time" class="rol-entrada" value="06:00">
-      </div>
-
-      <div>
-        <label>Salida</label>
-        <input type="time" class="rol-salida" value="18:00">
-      </div>
-
-      <div>
-        <label>&nbsp;</label>
-        <button type="button" class="danger" onclick="this.closest('.personal-rol-row').remove()">
-          🗑️ Quitar
-        </button>
-      </div>
-    </div>
-  `;
-
-  cont.appendChild(row);
-}
 function setU(i,k,v){draft[i][k]=v}
 function delU(i){draft.splice(i,1);renderUnits()}
 function renderUnits(){units.innerHTML=draft.length?draft.map((u,i)=>{let pairNo=draft.slice(0,i).filter(x=>x.unitType==="pareja").length+1;let titulo=u.unitType==="moto"?(find(cars,u.car,"numero")!=="-"?"🏍️ Moto "+find(cars,u.car,"numero"):"🏍️ Moto") :u.unitType==="pareja"?"👮 Pareja "+pairNo:(find(cars,u.car,"numero")!=="-"?"🚓 Patrulla "+find(cars,u.car,"numero"):"🚓 Patrulla");return `<div class=card><h3>${titulo}</h3><div class=grid><div><label>Tipo de unidad</label><select onchange="setU(${i},'unitType',this.value)"><option value="patrulla" ${u.unitType==="patrulla"||!u.unitType?"selected":""}>🚓 Patrulla</option><option value="moto" ${u.unitType==="moto"?"selected":""}>🏍️ Moto</option><option value="pareja" ${u.unitType==="pareja"?"selected":""}>👮 Pareja en recorrido</option></select></div></div>${u.unitType==="pareja"?`<div class=grid><div><label>👮 Oficial 1</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Oficial 2</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Oficial 3</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`:u.unitType==="moto"?`<div class=grid><div><label>🏍️ Moto</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Oficial</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`:`<div class=grid><div><label>🚓 Patrulla</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Chofer</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Apoyo</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`}<h4>🍽️ Horario de alimentación</h4><div class=grid><div><label>🍳 Desayuno</label><input type=time value="${esc(u.breakfast)}" onchange="setU(${i},'breakfast',this.value)"></div><div><label>🍛 Almuerzo</label><input type=time value="${esc(u.lunch)}" onchange="setU(${i},'lunch',this.value)"></div><div><label>☕ Café</label><input type=time value="${esc(u.coffee)}" onchange="setU(${i},'coffee',this.value)"></div><div><label>📍 Sector asignado</label><input value="${esc(u.sector)}" onchange="setU(${i},'sector',this.value)"></div></div><div style="margin-top:10px"><label>🎯 Labores a realizar</label><textarea onchange="setU(${i},'tasks',this.value)">${esc(u.tasks)}</textarea></div><div class=actions><button class=danger onclick="delU(${i})">Eliminar unidad</button></div></div>`}).join(""):"Agregá una unidad para comenzar."}
 async function getUnits(id){
-  const [a,p]=await Promise.all([
-    sb.from("asignaciones").select("*").eq("rol_id",id).order("created_at"),
-    sb.from("personal_rol").select("*").eq("rol_id",id).order("created_at")
-  ]);
-
-  if(a.error){
-    alert(a.error.message);
-    return [];
-  }
-
-  if(p.error){
-    alert(p.error.message);
-    return [];
-  }
-
-  const unidades=a.data||[];
-  const personal=p.data||[];
-
-  return [
-    ...unidades,
-    ...personal.map(x=>({
-      ...x,
-      tipo_unidad:"personal_rol"
-    }))
-  ];
+  const a=await sb.from("asignaciones").select("*").eq("rol_id",id).order("created_at");
+  if(a.error){alert(a.error.message);return [];} return a.data||[];
 }
-async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");let u=await getUnits(r.id);draft=u.map(x=>({car:x.patrulla_id,driver:x.chofer_id,comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits()}
+async function getPersonalRol(id){
+  const p=await sb.from("personal_rol").select("*").eq("rol_id",id).order("created_at");
+  if(p.error){alert(p.error.message);return [];} return p.data||[];
+}
+function clearPersonalRol(){["personalOperaciones","personalProgramas","personalArmeria","personalLaboresMixtas"].forEach(id=>{let e=document.getElementById(id);if(e)e.innerHTML="";});}
+function addPersonalRolRow(area,data={}){
+  const ids={"Operaciones":"personalOperaciones","Programas":"personalProgramas","Armería":"personalArmeria","Labores Mixtas":"personalLaboresMixtas"};
+  const cont=document.getElementById(ids[area]); if(!cont)return;
+  const disponibles=people.filter(p=>p.estado==="Disponible"||p.id===data.funcionario_id);
+  const row=document.createElement("div"); row.className="item personal-rol-row"; row.dataset.area=area;
+  row.innerHTML=`<div class="grid"><div><label>Funcionario</label><select class="rol-persona"><option value="">— Seleccionar —</option>${disponibles.map(p=>`<option value="${p.id}" ${p.id===data.funcionario_id?"selected":""}>${esc(p.nombre)}</option>`).join("")}</select></div><div><label>Entrada</label><input type="time" class="rol-entrada" value="${esc(data.hora_entrada||"06:00")}"></div><div><label>Salida</label><input type="time" class="rol-salida" value="${esc(data.hora_salida||"18:00")}"></div><div><label>&nbsp;</label><button type="button" class="danger" onclick="this.closest('.personal-rol-row').remove()">🗑️ Quitar</button></div></div>`;
+  cont.appendChild(row);
+}
+async function loadPersonalRol(id){clearPersonalRol();let p=await getPersonalRol(id);p.forEach(x=>addPersonalRolRow(x.area,{funcionario_id:x.funcionario_id||"",hora_entrada:x.hora_entrada||"06:00",hora_salida:x.hora_salida||"18:00"}));return p;}
+async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");let u=await getUnits(r.id);draft=u.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(r.id);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();}
 async function saveRole(){
-  if(!draft.length)return alert("Agregá una unidad.");
+  const officeRows=[...document.querySelectorAll(".personal-rol-row")].filter(row=>row.querySelector(".rol-persona").value);
+  if(!draft.length&&!officeRows.length)return alert("Agregá una unidad operativa o personal de oficina.");
 
   for(let u of draft){
     let type=u.unitType||"patrulla";
@@ -381,13 +320,13 @@ let rows=draft.map(u=>({
     return alert(ir.error.message);
   }
 
-  const personalRol=[...document.querySelectorAll(".personal-rol-row")].map(row=>({
+  const personalRol=officeRows.map(row=>({
   rol_id:rr.data.id,
   funcionario_id:row.querySelector(".rol-persona").value,
   area:row.dataset.area,
   hora_entrada:row.querySelector(".rol-entrada").value || null,
   hora_salida:row.querySelector(".rol-salida").value || null
-})).filter(x=>x.funcionario_id);
+}));
 
 if(personalRol.length){
   const pr=await sb.from("personal_rol").insert(personalRol);
@@ -404,110 +343,15 @@ if(personalRol.length){
 }
 function find(a,id,k){let x=a.find(y=>y.id===id);return x?x[k]:"—"}
 async function showReport(r){
-  let us=await getUnits(r.id);
-
-  report.innerHTML=`
-    <div class="reportHead">
-      <b>ROL DE SERVICIO OPERATIVO</b>
-     <div>${r.fecha ? esc(r.fecha.split("-").reverse().join("/")) : ""} — Horario: ${esc(r.turno || "")}</div>
-      ${r.encargado_grupo?`<div>Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}${r.encargado_escuadra?`<div>Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}${r.jefe_servicio?`<div>Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}${r.subjefe_servicio?`<div>Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}${r.jefe_distrital?`<div>Jefe distrital en servicio: ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}
-    </div>
-
-    ${us.map((u,i)=>{
-      let type=u.tipo_unidad||"patrulla";
-
-      let oficial1=find(people,u.chofer_id,"nombre");
-      let oficial2=find(people,u.acompanante_id,"nombre");
-      let apoyo=find(people,u.apoyo_id,"nombre");
-      let vehiculo=find(cars,u.patrulla_id,"numero");
-
-      let titulo="";
-let personal="";
-
-if(type==="personal_rol"){
-    titulo=`👤 ${esc(u.area || "Personal")}`;
-    personal=`
-        <div>
-            <label>👮 Funcionario</label>
-            <b>${esc(find(people,u.funcionario_id,"nombre"))}</b>
-        </div>
-        <div>
-            <label>🕐 Entrada</label>
-            <b>${esc(u.hora_entrada || "-")}</b>
-        </div>
-        <div>
-            <label>🕐 Salida</label>
-            <b>${esc(u.hora_salida || "-")}</b>
-        </div>
-    `;
-}
-else if(type==="pareja"){
-          titulo=`🚶 Pareja en recorrido`;
-        personal=`
-          <div><label>Oficial 1</label><b>${esc(oficial1)}</b></div>
-          <div><label>Oficial 2</label><b>${esc(oficial2)}</b></div><div><label>Oficial 3</label><b>${esc(apoyo)}</b></div>
-        `;
-      }
-      else if(type==="moto"){
-        titulo=`🏍️ Moto ${vehiculo!=="-"?esc(vehiculo):""}`;
-        personal=`
-          <div><label>Oficial</label><b>${esc(oficial1)}</b></div>
-          ${oficial2!=="-"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:""}
-        `;
-      }
-      else{
-        titulo=`🚓 Patrulla ${vehiculo!=="-"?esc(vehiculo):""}`;
-        personal=`
-          <div><label>Chofer</label><b>${esc(oficial1)}</b></div>
-          ${oficial2!=="-"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:""}
-          ${apoyo!=="-"?`<div><label>Apoyo</label><b>${esc(apoyo)}</b></div>`:""}
-        `;
-      }
-
-      return `
-        <div class="card">
-          <h3>${titulo}</h3>
-
-          <div class="grid">
-            ${personal}
-
-            <div>
-              <label>🍽️ Alimentación</label>
-              <div>
-                🍳 ${esc(u.desayuno||"-")}
-                &nbsp;&nbsp;
-                🍛 ${esc(u.almuerzo||"-")}
-                &nbsp;&nbsp;
-                ☕ ${esc(u.cafe||"-")}
-              </div>
-            </div>
-
-            <div>
-              <label>📍 Sector</label>
-              <b>${esc(u.sector||"-")}</b>
-            </div>
-          </div>
-
-          <div style="margin-top:10px">
-            <label>🎯 Labores</label>
-            <div>${esc(u.labores||"-")}</div>
-          </div>
-        </div>
-      `;
-    }).join("")}
-
-    <div class="card">
-      <b>Total de unidades: ${us.length}</b>
-    </div>
-
-    <div class="card no-print">
-      <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
-    </div>
-  `;
+  const [us,office]=await Promise.all([getUnits(r.id),getPersonalRol(r.id)]);
+  const operationalHtml=us.length?us.map(u=>{let type=u.tipo_unidad||"patrulla",oficial1=find(people,u.chofer_id,"nombre"),oficial2=find(people,u.acompanante_id,"nombre"),apoyo=find(people,u.apoyo_id,"nombre"),vehiculo=find(cars,u.patrulla_id,"numero"),titulo="",personal="";if(type==="pareja"){titulo="🚶 Pareja en recorrido";personal=`<div><label>Oficial 1</label><b>${esc(oficial1)}</b></div><div><label>Oficial 2</label><b>${esc(oficial2)}</b></div>${apoyo!=="—"?`<div><label>Oficial 3</label><b>${esc(apoyo)}</b></div>`:""}`;}else if(type==="moto"){titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Oficial</label><b>${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:""}`;}else{titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Chofer</label><b>${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>${esc(oficial2)}</b></div>`:""}${apoyo!=="—"?`<div><label>Apoyo</label><b>${esc(apoyo)}</b></div>`:""}`;}return `<div class="card"><h3>${titulo}</h3><div class="grid">${personal}<div><label>🍽️ Alimentación</label><div>🍳 ${esc(u.desayuno||"-")} &nbsp;&nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp;&nbsp; ☕ ${esc(u.cafe||"-")}</div></div><div><label>📍 Sector</label><b>${esc(u.sector||"-")}</b></div></div><div style="margin-top:10px"><label>🎯 Labores</label><div>${esc(u.labores||"-")}</div></div></div>`;}).join(""):`<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
+  const order=["Operaciones","Programas","Armería","Labores Mixtas"],icons={"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"🔄"};
+  const officeHtml=office.length?order.map(area=>{let rows=office.filter(x=>x.area===area);if(!rows.length)return "";return `<div class="card"><h3>${icons[area]} ${esc(area)}</h3>${rows.map(x=>`<div class="grid"><div><label>Funcionario</label><b>${esc(find(people,x.funcionario_id,"nombre"))}</b></div><div><label>Horario</label><b>${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</b></div></div>`).join("")}</div>`;}).join(""):`<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
+  report.innerHTML=`<div class="reportHead"><b>ROL DE SERVICIO OPERATIVO</b><div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>${r.encargado_grupo?`<div>Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}${r.encargado_escuadra?`<div>Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}${r.jefe_servicio?`<div>Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}${r.subjefe_servicio?`<div>Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}${r.jefe_distrital?`<div>Jefe distrital en servicio: ${esc(find(people,r.jefe_distrital,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}<div class="card"><b>Total de unidades operativas: ${us.length}</b><br><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
 }
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
-async function openRole(id){let r=roles.find(x=>x.id===id);if(r){await showReport(r);go("informe")}}
-async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;let us=await getUnits(id);draft=us.map(x=>({car:x.patrulla_id,driver:x.chofer_id,comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";go("rol")}
+async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
+async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;let us=await getUnits(id);draft=us.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(id);roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();go("rol");}
 function refresh(){kPeople.textContent=people.length;kCars.textContent=cars.length;kRoles.textContent=roles.length;renderPeople();renderCars()}
 (async()=>{let s=await sb.auth.getSession();s.data.session?showApp():showLogin()})();
 </script></body></html>
