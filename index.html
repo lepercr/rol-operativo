@@ -521,7 +521,32 @@ async function showReport(r){
     ${r.encargado_grupo?`<div>👮 Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
     ${r.encargado_escuadra?`<div>👮 Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
     ${r.oficial_guardia?`<div>👮 Oficial de guardia: ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
-    ${r.despachador?`<div>📻 Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}<div class="card summary-card"><b>Total de unidades operativas: ${us.length}</b><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
+    ${r.despachador?`<div>📻 Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}<div class="card summary-card"><b>Total de unidades operativas: ${us.length}</b><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="copyRoleForWhatsApp()">📲 Copiar para WhatsApp</button> <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
+}
+
+async function copyRoleForWhatsApp(){
+  const source=document.getElementById("report");
+  if(!source) return;
+  const html=`<div>${source.innerHTML}</div>`;
+  const clone=source.cloneNode(true);
+  clone.querySelectorAll(".no-print").forEach(x=>x.remove());
+  const blocks=[...clone.querySelectorAll(".reportHead,.unit-card,.office-card,.summary-card")];
+  let lines=[];
+  blocks.forEach((block,i)=>{
+    const title=block.querySelector("h3")?.innerText||"";
+    const isHead=block.classList.contains("reportHead");
+    if(isHead){ lines.push(`*${block.querySelector("b")?.innerText||"ROL DE SERVICIO OPERATIVO"}*`); [...block.querySelectorAll("div")].forEach(d=>{if(d.parentElement===block&&d.innerText.trim()) lines.push(d.innerText.trim())}); }
+    else if(title){ lines.push(""); lines.push(`*${title}*`); [...block.querySelectorAll(".grid,.unit-meta,.unit-tasks")].forEach(g=>g.querySelectorAll("label").length?null:null); const text=[...block.querySelectorAll("div")].filter(d=>d.children.length===0&&d.innerText.trim()).map(d=>d.innerText.trim()); lines.push(...[...new Set(text)]); }
+  });
+  const plain=lines.join("\n").replace(/\n{3,}/g,"\n\n");
+  const rich=clone.innerHTML.replace(/<h3([^>]*)>(.*?)<\/h3>/g,"<div$1><strong>$2</strong></div>");
+  try{
+    if(navigator.clipboard&&window.ClipboardItem){
+      await navigator.clipboard.write([new ClipboardItem({"text/plain":new Blob([plain],{type:"text/plain"}),"text/html":new Blob([rich],{type:"text/html"})})]);
+    }else if(navigator.clipboard){ await navigator.clipboard.writeText(plain); }
+    else{ const ta=document.createElement("textarea"); ta.value=plain; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+    alert("Rol copiado. Ahora abrí WhatsApp y pegalo.");
+  }catch(e){ alert("No se pudo copiar automáticamente. Probá desde el navegador o permití el acceso al portapapeles."); }
 }
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
 async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
