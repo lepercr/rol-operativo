@@ -74,9 +74,9 @@ button.danger{background:#fff0ef;color:var(--danger);border:1px solid #ffd0cc;bo
   border:1px solid var(--line);
   box-shadow:var(--shadow);
 }
-.card{border-radius:22px;padding:22px;margin:16px 0}
+.card{border-radius:22px;padding:18px;margin:12px 0}
 .item{border-radius:16px;padding:15px;margin:10px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 label{display:block;font-size:12px;font-weight:850;color:#46627c;margin-bottom:6px;letter-spacing:.15px}
 input,select,textarea{
   width:100%;padding:12px 13px;border:1px solid #c6deed;border-radius:12px;
@@ -114,12 +114,30 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 }
 .reportHead{
   background:linear-gradient(135deg,#0b1f3a,#12365f 60%,#19649a);
-  color:white;padding:24px 26px;border-radius:22px 22px 0 0;
+  color:white;padding:18px 22px;border-radius:22px 22px 0 0;
   line-height:1.55;box-shadow:var(--shadow);
 }
 .reportHead b:first-child{font-size:22px;letter-spacing:.4px}
 .reportItem{background:white;border:1px solid var(--line);border-top:0;padding:15px}
-.reportGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.reportGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+
+/* Informe compacto: aprovecha mejor el ancho sin alterar colores ni funciones */
+#report>h2{margin:16px 0 8px}
+#report .card{padding:14px 18px;margin:10px 0}
+#report .unit-card h3,#report .office-card h3{margin:0 0 10px}
+#report .unit-grid{grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;align-items:start}
+#report .office-row{grid-template-columns:minmax(220px,1fr) minmax(170px,.55fr);gap:14px;padding:8px 0}
+#report .office-row+.office-row{border-top:1px solid var(--line)}
+#report .unit-meta{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+#report .unit-meta>div{min-width:130px;flex:1}
+#report .unit-tasks{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+#report .summary-card{display:flex;gap:28px;flex-wrap:wrap;align-items:center}
+@media(max-width:700px){
+  #report .unit-grid,#report .office-row{grid-template-columns:1fr}
+  #report .unit-meta{gap:10px}
+  #report .summary-card{gap:8px}
+}
+
 .dashboard-hero{
   background:
     radial-gradient(circle at 88% 18%,rgba(125,211,252,.22),transparent 28%),
@@ -493,9 +511,9 @@ if(personalRol.length){
 function find(a,id,k){let x=a.find(y=>y.id===id);return x?x[k]:"—"}
 async function showReport(r){
   const [us,office]=await Promise.all([getUnits(r.id),getPersonalRol(r.id)]);
-  const operationalHtml=us.length?us.map(u=>{let type=u.tipo_unidad||"patrulla",oficial1=find(people,u.chofer_id,"nombre"),oficial2=find(people,u.acompanante_id,"nombre"),apoyo=find(people,u.apoyo_id,"nombre"),vehiculo=find(cars,u.patrulla_id,"numero"),titulo="",personal="";if(type==="pareja"){titulo="🚶 Pareja en recorrido";personal=`<div><label>Oficial 1</label><b>👮 ${esc(oficial1)}</b></div><div><label>Oficial 2</label><b>👮 ${esc(oficial2)}</b></div>${apoyo!=="—"?`<div><label>Oficial 3</label><b>👮 ${esc(apoyo)}</b></div>`:""}`;}else if(type==="moto"){titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Oficial</label><b>👮 ${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:""}`;}else{titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Chofer</label><b>👮 ${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:""}${apoyo!=="—"?`<div><label>Apoyo</label><b>👮 ${esc(apoyo)}</b></div>`:""}`;}return `<div class="card"><h3>${titulo}</h3><div class="grid">${personal}<div><label>🍽️ Alimentación</label><div>🍳 ${esc(u.desayuno||"-")} &nbsp;&nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp;&nbsp; ☕ ${esc(u.cafe||"-")}</div></div><div><label>📍 Sector</label><b>${esc(u.sector||"-")}</b></div></div><div style="margin-top:10px"><label>🎯 Labores</label><div>${esc(u.labores||"-")}</div></div></div>`;}).join(""):`<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
+  const operationalHtml=us.length?us.map(u=>{let type=u.tipo_unidad||"patrulla",oficial1=find(people,u.chofer_id,"nombre"),oficial2=find(people,u.acompanante_id,"nombre"),apoyo=find(people,u.apoyo_id,"nombre"),vehiculo=find(cars,u.patrulla_id,"numero"),titulo="",personal="";if(type==="pareja"){titulo="🚶 Pareja en recorrido";personal=`<div><label>Oficial 1</label><b>👮 ${esc(oficial1)}</b></div><div><label>Oficial 2</label><b>👮 ${esc(oficial2)}</b></div>${apoyo!=="—"?`<div><label>Oficial 3</label><b>👮 ${esc(apoyo)}</b></div>`:""}`;}else if(type==="moto"){titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Oficial</label><b>👮 ${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:""}`;}else{titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Chofer</label><b>👮 ${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:""}${apoyo!=="—"?`<div><label>Apoyo</label><b>👮 ${esc(apoyo)}</b></div>`:""}`;}return `<div class="card unit-card"><h3>${titulo}</h3><div class="grid unit-grid">${personal}</div><div class="unit-meta"><div><label>🍽️ Alimentación</label><div>🍳 ${esc(u.desayuno||"-")} &nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp; ☕ ${esc(u.cafe||"-")}</div></div><div><label>📍 Sector</label><b>${esc(u.sector||"-")}</b></div></div><div class="unit-tasks"><label>🎯 Labores</label><div>${esc(u.labores||"-")}</div></div></div>`;}).join(""):`<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
   const order=["Operaciones","Programas","Armería","Labores Mixtas"],icons={"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"🔄"};
-  const officeHtml=office.length?order.map(area=>{let rows=office.filter(x=>x.area===area);if(!rows.length)return "";return `<div class="card"><h3>${icons[area]} ${esc(area)}</h3>${rows.map(x=>`<div class="grid"><div><label>Funcionario</label><b>👮 ${esc(find(people,x.funcionario_id,"nombre"))}</b></div><div><label>Horario</label><b>${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</b></div></div>`).join("")}</div>`;}).join(""):`<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
+  const officeHtml=office.length?order.map(area=>{let rows=office.filter(x=>x.area===area);if(!rows.length)return "";return `<div class="card office-card"><h3>${icons[area]} ${esc(area)}</h3>${rows.map(x=>`<div class="grid office-row"><div><label>Funcionario</label><b>👮 ${esc(find(people,x.funcionario_id,"nombre"))}</b></div><div><label>Horario</label><b>${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</b></div></div>`).join("")}</div>`;}).join(""):`<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
   report.innerHTML=`<div class="reportHead"><b>ROL DE SERVICIO OPERATIVO</b><div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>
     ${r.jefe_servicio?`<div>👮 Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}
     ${r.subjefe_servicio?`<div>👮 Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}
@@ -503,7 +521,7 @@ async function showReport(r){
     ${r.encargado_grupo?`<div>👮 Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
     ${r.encargado_escuadra?`<div>👮 Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
     ${r.oficial_guardia?`<div>👮 Oficial de guardia: ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
-    ${r.despachador?`<div>📻 Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}<div class="card"><b>Total de unidades operativas: ${us.length}</b><br><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
+    ${r.despachador?`<div>📻 Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}<div class="card summary-card"><b>Total de unidades operativas: ${us.length}</b><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
 }
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
 async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
