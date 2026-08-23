@@ -117,7 +117,8 @@
 </div>
 
     <div class="actions">
-      <button onclick="saveRole()">💾 Guardar rol</button>
+      <button class="secondary" onclick="copyPreviousRole()">📋 Copiar rol anterior</button>
+        <button onclick="saveRole()">💾 Guardar rol</button>
     </div>
   </div>
 </section>
@@ -354,6 +355,39 @@ async function showReport(r){
 }
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
 async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
+async function copyPreviousRole(){
+  if(!roles.length)return alert("No hay un rol anterior disponible para copiar.");
+  const previous=roles.slice().sort((a,b)=>new Date(b.fecha)-new Date(a.fecha))[0];
+  if(!confirm("¿Copiar el rol anterior disponible? Podrás modificarlo antes de guardarlo."))return;
+
+  const us=await getUnits(previous.id);
+  draft=us.map(x=>({
+    unitType:x.tipo_unidad||"patrulla",
+    car:x.patrulla_id||"",
+    driver:x.chofer_id||"",
+    comp:x.acompanante_id||"",
+    support:x.apoyo_id||"",
+    breakfast:x.desayuno||"",
+    lunch:x.almuerzo||"",
+    coffee:x.cafe||"",
+    sector:x.sector||"",
+    tasks:x.labores||""
+  }));
+
+  await loadPersonalRol(previous.id);
+  roleShift.value=previous.turno||"";
+  roleLeader.value=previous.encargado_escuadra||previous.encargado||"";
+  roleGroup.value=previous.encargado_grupo||"";
+  roleChief.value=previous.jefe_servicio||"";
+  roleDeputy.value=previous.subjefe_servicio||"";
+  roleDistrict.value=previous.jefe_distrital||"";
+  oficialGuardia.value=previous.oficial_guardia||"";
+  despachador.value=previous.despachador||"";
+  roleDate.value=new Date().toISOString().slice(0,10);
+  renderUnits();
+  alert("Rol anterior copiado. Revisá los datos y guardalo cuando esté listo.");
+}
+
 async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;let us=await getUnits(id);draft=us.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(id);roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();go("rol");}
 function refresh(){kPeople.textContent=people.length;kCars.textContent=cars.length;kRoles.textContent=roles.length;renderPeople();renderCars()}
 (async()=>{let s=await sb.auth.getSession();s.data.session?showApp():showLogin()})();
