@@ -514,6 +514,7 @@ async function showReport(r){
   const operationalHtml=us.length?us.map(u=>{let type=u.tipo_unidad||"patrulla",oficial1=find(people,u.chofer_id,"nombre"),oficial2=find(people,u.acompanante_id,"nombre"),apoyo=find(people,u.apoyo_id,"nombre"),vehiculo=find(cars,u.patrulla_id,"numero"),titulo="",personal="";if(type==="pareja"){titulo="🚶 Pareja en recorrido";personal=`<div><label>Oficial 1</label><b>👮 ${esc(oficial1)}</b></div><div><label>Oficial 2</label><b>👮 ${esc(oficial2)}</b></div>${apoyo!=="—"?`<div><label>Oficial 3</label><b>👮 ${esc(apoyo)}</b></div>`:""}`;}else if(type==="moto"){titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Oficial</label><b>👮 ${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:""}`;}else{titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Chofer</label><b>👮 ${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:""}${apoyo!=="—"?`<div><label>Apoyo</label><b>👮 ${esc(apoyo)}</b></div>`:""}`;}return `<div class="card unit-card"><h3>${titulo}</h3><div class="grid unit-grid">${personal}</div><div class="unit-meta"><div><label>🍽️ Alimentación</label><div>🍳 ${esc(u.desayuno||"-")} &nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp; ☕ ${esc(u.cafe||"-")}</div></div><div><label>📍 Sector</label><b>${esc(u.sector||"-")}</b></div></div><div class="unit-tasks"><label>🎯 Labores</label><div>${esc(u.labores||"-")}</div></div></div>`;}).join(""):`<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
   const order=["Operaciones","Programas","Armería","Labores Mixtas"],icons={"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"🔄"};
   const officeHtml=office.length?order.map(area=>{let rows=office.filter(x=>x.area===area);if(!rows.length)return "";return `<div class="card office-card"><h3>${icons[area]} ${esc(area)}</h3>${rows.map(x=>`<div class="grid office-row"><div><label>Funcionario</label><b>👮 ${esc(find(people,x.funcionario_id,"nombre"))}</b></div><div><label>Horario</label><b>${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</b></div></div>`).join("")}</div>`;}).join(""):`<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
+  report.dataset.roleId=r.id;
   report.innerHTML=`<div class="reportHead"><b>ROL DE SERVICIO OPERATIVO</b><div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>
     ${r.jefe_servicio?`<div>👮 Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}
     ${r.subjefe_servicio?`<div>👮 Subjefe en servicio: ${esc(find(people,r.subjefe_servicio,"nombre"))}</div>`:""}
@@ -527,19 +528,80 @@ async function showReport(r){
 async function copyRoleForWhatsApp(){
   const source=document.getElementById("report");
   if(!source) return;
-  const html=`<div>${source.innerHTML}</div>`;
-  const clone=source.cloneNode(true);
-  clone.querySelectorAll(".no-print").forEach(x=>x.remove());
-  const blocks=[...clone.querySelectorAll(".reportHead,.unit-card,.office-card,.summary-card")];
-  let lines=[];
-  blocks.forEach((block,i)=>{
-    const title=block.querySelector("h3")?.innerText||"";
-    const isHead=block.classList.contains("reportHead");
-    if(isHead){ lines.push(`*${block.querySelector("b")?.innerText||"ROL DE SERVICIO OPERATIVO"}*`); [...block.querySelectorAll("div")].forEach(d=>{if(d.parentElement===block&&d.innerText.trim()) lines.push(d.innerText.trim())}); }
-    else if(title){ lines.push(""); lines.push(`*${title}*`); [...block.querySelectorAll(".grid,.unit-meta,.unit-tasks")].forEach(g=>g.querySelectorAll("label").length?null:null); const text=[...block.querySelectorAll("div")].filter(d=>d.children.length===0&&d.innerText.trim()).map(d=>d.innerText.trim()); lines.push(...[...new Set(text)]); }
-  });
+  const roleId=source.dataset.roleId;
+  const r=roles.find(x=>String(x.id)===String(roleId));
+  if(!r) return alert("No se encontró la información del rol actual.");
+
+  const [us,office]=await Promise.all([getUnits(r.id),getPersonalRol(r.id)]);
+  const lines=[];
+  const add=v=>{if(v!==undefined&&v!==null&&String(v).trim()&&String(v).trim()!=="—")lines.push(String(v).trim());};
+
+  add("*ROL DE SERVICIO OPERATIVO*");
+  add(`${r.fecha?String(r.fecha).split("-").reverse().join("/"):""} — Horario: ${r.turno||""}`);
+  const cargos=[
+    ["👮 Jefe en servicio",r.jefe_servicio],
+    ["👮 Subjefe en servicio",r.subjefe_servicio],
+    ["👮 Jefe distrital en servicio",r.jefe_distrital],
+    ["👮 Encargado de grupo",r.encargado_grupo],
+    ["👮 Encargado de escuadra",r.encargado_escuadra],
+    ["👮 Oficial de guardia",r.oficial_guardia]
+  ];
+  cargos.forEach(([cargo,id])=>{if(id)add(`${cargo}: ${find(people,id,"nombre")}`)});
+  if(r.despachador)add(`📻 Despachador: ${find(people,r.despachador,"nombre")}`);
+
+  if(us.length){
+    lines.push("", "*🚓 UNIDADES OPERATIVAS*");
+    us.forEach(u=>{
+      const type=u.tipo_unidad||"patrulla";
+      const vehiculo=find(cars,u.patrulla_id,"numero");
+      let titulo="", personal=[];
+      const nombre=id=>find(people,id,"nombre");
+      if(type==="pareja"){
+        titulo="🚶 Pareja en recorrido";
+        if(u.chofer_id)personal.push(`👮 Oficial 1: ${nombre(u.chofer_id)}`);
+        if(u.acompanante_id)personal.push(`👮 Oficial 2: ${nombre(u.acompanante_id)}`);
+        if(u.apoyo_id)personal.push(`👮 Oficial 3: ${nombre(u.apoyo_id)}`);
+      }else if(type==="moto"){
+        titulo=`🏍️ Moto ${vehiculo!=="—"?vehiculo:""}`.trim();
+        if(u.chofer_id)personal.push(`👮 Oficial: ${nombre(u.chofer_id)}`);
+        if(u.acompanante_id)personal.push(`👮 Acompañante: ${nombre(u.acompanante_id)}`);
+        if(u.apoyo_id)personal.push(`👮 Apoyo: ${nombre(u.apoyo_id)}`);
+      }else{
+        titulo=`🚓 Patrulla ${vehiculo!=="—"?vehiculo:""}`.trim();
+        if(u.chofer_id)personal.push(`👮 Chofer: ${nombre(u.chofer_id)}`);
+        if(u.acompanante_id)personal.push(`👮 Acompañante: ${nombre(u.acompanante_id)}`);
+        if(u.apoyo_id)personal.push(`👮 Apoyo: ${nombre(u.apoyo_id)}`);
+      }
+      lines.push("", `*${titulo}*`);
+      lines.push(...personal);
+      if(u.desayuno||u.almuerzo||u.cafe) add(`🍽️ Alimentación: 🍳 ${u.desayuno||"-"}   🍛 ${u.almuerzo||"-"}   ☕ ${u.cafe||"-"}`);
+      if(u.sector) add(`📍 Sector: ${u.sector}`);
+      if(u.labores) add(`🎯 Labores: ${u.labores}`);
+    });
+  }
+
+  const order=["Operaciones","Programas","Armería","Labores Mixtas"];
+  const icons={"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"🔄"};
+  const hasOffice=office.some(x=>order.includes(x.area));
+  if(hasOffice){
+    lines.push("", "*🏢 PERSONAL DE OFICINA*");
+    order.forEach(area=>{
+      const rows=office.filter(x=>x.area===area);
+      if(!rows.length)return;
+      lines.push("", `*${icons[area]} ${area}*`);
+      rows.forEach(x=>{
+        const nombre=find(people,x.funcionario_id,"nombre");
+        const horario=(x.hora_entrada||x.hora_salida)?` (${x.hora_entrada||"-"} - ${x.hora_salida||"-"})`:"";
+        add(`👮 ${nombre}${horario}`);
+      });
+    });
+  }
+
   const plain=lines.join("\n").replace(/\n{3,}/g,"\n\n");
-  const rich=clone.innerHTML.replace(/<h3([^>]*)>(.*?)<\/h3>/g,"<div$1><strong>$2</strong></div>");
+  const rich=plain
+    .split("\n")
+    .map(line=>/^\*(.*)\*$/.test(line)?`<strong>${line.slice(1,-1)}</strong>`:line)
+    .join("<br>");
   try{
     if(navigator.clipboard&&window.ClipboardItem){
       await navigator.clipboard.write([new ClipboardItem({"text/plain":new Blob([plain],{type:"text/plain"}),"text/html":new Blob([rich],{type:"text/html"})})]);
