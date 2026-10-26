@@ -355,11 +355,19 @@ async function loadAll(){
 }
 async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,cedula:personCedula.value.trim()||null,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personCedula.value="";personRole.value="";await loadAll()}}
 async function delPerson(id){
-  if(confirm("¿Eliminar funcionario?")){
-    let r=await sb.from("personal").delete().eq("id",id);
-    if(r.error)alert(r.error.message);
-    else await loadAll();
+  if(!confirm("¿Eliminar funcionario?"))return;
+
+  let r=await sb.from("personal").delete().eq("id",id);
+  if(r.error){
+    if(r.error.code==="23503"||/foreign key constraint/i.test(r.error.message||"")){
+      const archived=await sb.from("personal").update({estado:"Eliminado"}).eq("id",id);
+      if(archived.error)return alert("No se pudo archivar el funcionario: "+archived.error.message);
+      await loadAll();
+      return alert("Este funcionario aparece en roles guardados. Se archivó para conservar el historial y ya no aparecerá en Personal ni en nuevas asignaciones.");
+    }
+    return alert(r.error.message);
   }
+  await loadAll();
 }
 
 async function editPerson(id){
@@ -386,7 +394,7 @@ async function editPerson(id){
   if(r.error)alert(r.error.message);
   else await loadAll();
 }
-function renderPeople(){peopleList.innerHTML=people.length?people.map(p=>`<div class=item><b>${esc(p.nombre)}</b><div class=small>${esc(p.funcion||"Sin función")} · ${esc(p.estado)}</div>${p.cedula?`<div class=small>Cédula: ${esc(p.cedula)}</div>`:""}<div class=actions><button onclick="editPerson('${p.id}')">✏️ Editar</button><button class=danger onclick="delPerson('${p.id}')">Eliminar</button></div></div>`).join(""):"<div class=small>No hay funcionarios.</div>"}
+function renderPeople(){const visibles=people.filter(p=>p.estado!=="Eliminado");peopleList.innerHTML=visibles.length?visibles.map(p=>`<div class=item><b>${esc(p.nombre)}</b><div class=small>${esc(p.funcion||"Sin función")} · ${esc(p.estado)}</div>${p.cedula?`<div class=small>Cédula: ${esc(p.cedula)}</div>`:""}<div class=actions><button onclick="editPerson('${p.id}')">✏️ Editar</button><button class=danger onclick="delPerson('${p.id}')">Eliminar</button></div></div>`).join(""):"<div class=small>No hay funcionarios.</div>"}
 async function addCar(){let n=carNumber.value.trim();if(!n)return alert("Ingresá el número.");let r=await sb.from("patrullas").insert({numero:n,tipo:carType.value.trim(),estado:carState.value});if(r.error)alert(r.error.message);else{carNumber.value="";carType.value="";await loadAll()}}
 async function delCar(id){if(confirm("¿Eliminar patrulla?")){let r=await sb.from("patrullas").delete().eq("id",id);if(r.error)alert(r.error.message);else await loadAll()}}
 function renderCars(){carsList.innerHTML=cars.length?cars.map(c=>`<div class=item><b>🚓 ${esc(c.numero)}</b><div class=small>${esc(c.tipo||"Patrulla")} · ${esc(c.estado)}</div><div class=actions><button class=danger onclick="delCar('${c.id}')">Eliminar</button></div></div>`).join(""):"<div class=small>No hay patrullas.</div>"}
