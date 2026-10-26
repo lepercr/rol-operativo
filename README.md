@@ -19,7 +19,7 @@ Antes de usar el campo de cédula, ejecuta una vez en **Supabase → SQL Editor*
 La cédula se administra desde la pestaña **Personal** y no se agrega a los informes ni al texto copiado para WhatsApp.
 
 ## Acciones RAP
-Para usar la sección RAP, ejecuta una vez `supabase/migrations/20261026_create_rap_actions.sql` en **Supabase → SQL Editor**. Cada acción incluye zona, actividad, horario y patrulla, moto o pareja en recorrido asignada; el informe muestra también el personal de esa unidad.
+Para usar la sección RAP, ejecuta una vez `supabase/migrations/20261026_create_rap_actions.sql` en **Supabase → SQL Editor**. Cada acción se guarda ligada al rol, a una patrulla, moto o pareja en recorrido y a uno o varios integrantes de esa unidad. La pestaña RAP muestra un reporte independiente y permite copiarlo a WhatsApp; el informe del rol también incluye sus acciones. Si ya ejecutaste una versión anterior del script, vuelve a ejecutarlo: agrega las columnas `unidad` y `personal_ids` de forma segura y conserva las acciones existentes.
 
 ## GitHub Pages
 1. Crea un repositorio nuevo.
