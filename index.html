@@ -132,6 +132,11 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 #report .unit-meta>div{min-width:130px;flex:1}
 #report .unit-tasks{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 #report .summary-card{display:flex;gap:28px;flex-wrap:wrap;align-items:center}
+.rap-table-wrap{overflow-x:auto}
+.rap-table{width:100%;border-collapse:collapse;background:#fff}
+.rap-table th,.rap-table td{border:2px solid #173d5c;padding:11px 12px;text-align:center;vertical-align:middle}
+.rap-table th{background:#eaf7ff;color:#123b5e;font-weight:850}
+.rap-assignee{display:block;margin-top:5px;color:#46627c;font-size:12px}
 @media(max-width:700px){
   #report .unit-grid,#report .office-row{grid-template-columns:1fr}
   #report .unit-meta{gap:10px}
@@ -279,6 +284,13 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
   </div>
 </div>
 
+    <div class="card">
+      <h3>📍 Respuesta de Acción Policial (RAP)</h3>
+      <p class="small">Definí la zona, actividad, horario y la patrulla, moto o pareja en recorrido asignada. El informe mostrará también el personal de esa unidad.</p>
+      <div id="rapActions"></div>
+      <div class="actions"><button type="button" class="secondary" onclick="addRapAction()">➕ Agregar acción RAP</button></div>
+    </div>
+
     <div class="actions">
       <button class="secondary" onclick="copyPreviousRole()">📋 Copiar rol anterior</button>
         <button onclick="saveRole()">💾 Guardar rol</button>
@@ -291,7 +303,7 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const sb=supabase.createClient("https://twnpkicoenwonvvxcqjm.supabase.co","sb_publishable_JI19iTrqw0ywlmx7vhCM9w_QYCmrDmA");
-let people=[],cars=[],roles=[],personalRol=[],draft=[];
+let people=[],cars=[],roles=[],personalRol=[],draft=[],rapDraft=[];
 document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>go(b.dataset.p));
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const msg=t=>authMsg.textContent=t;
@@ -356,7 +368,6 @@ async function loadAll(){
 async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,cedula:personCedula.value.trim()||null,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personCedula.value="";personRole.value="";await loadAll()}}
 async function delPerson(id){
   if(!confirm("¿Eliminar funcionario?"))return;
-
   let r=await sb.from("personal").delete().eq("id",id);
   if(r.error){
     if(r.error.code==="23503"||/foreign key constraint/i.test(r.error.message||"")){
@@ -400,10 +411,40 @@ async function delCar(id){if(confirm("¿Eliminar patrulla?")){let r=await sb.fro
 function renderCars(){carsList.innerHTML=cars.length?cars.map(c=>`<div class=item><b>🚓 ${esc(c.numero)}</b><div class=small>${esc(c.tipo||"Patrulla")} · ${esc(c.estado)}</div><div class=actions><button class=danger onclick="delCar('${c.id}')">Eliminar</button></div></div>`).join(""):"<div class=small>No hay patrullas.</div>"}
 function pOpts(s){return '<option value="">— Seleccionar —</option>'+people.filter(p=>p.estado==="Disponible").map(p=>`<option value="${p.id}" ${p.id===s?"selected":""}>${esc(p.nombre)}</option>`).join("")}
 function cOpts(s){return '<option value="">— Seleccionar —</option>'+cars.filter(c=>c.estado==="Disponible").map(c=>`<option value="${c.id}" ${c.id===s?"selected":""}>${esc(c.numero)}</option>`).join("")}
-function addUnit(){draft.push({unitType:"patrulla",car:"",driver:"",comp:"",support:"",breakfast:"",lunch:"",coffee:"",sector:"",tasks:""});renderUnits()}
-function setU(i,k,v){draft[i][k]=v}
-function delU(i){draft.splice(i,1);renderUnits()}
-function moveU(i,dir){const j=i+dir;if(j<0||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];renderUnits()}
+function addUnit(){draft.push({unitType:"patrulla",car:"",driver:"",comp:"",support:"",breakfast:"",lunch:"",coffee:"",sector:"",tasks:""});renderUnits();renderRapActions()}
+function setU(i,k,v){draft[i][k]=v;renderRapActions()}
+function delU(i){draft.splice(i,1);renderUnits();renderRapActions()}
+function rapUnitLabel(u,i){
+  if(!u)return "";
+  const type=u.unitType||"patrulla";
+  const number=type==="pareja"?"":find(cars,u.car,"numero");
+  const names=[u.driver,u.comp,u.support].filter(Boolean).map(id=>find(people,id,"nombre")).filter(name=>name!=="—");
+  const crew=names.length?" — "+names.join(", "):"";
+  if(type==="pareja"){
+    const pairNo=draft.slice(0,i).filter(x=>x.unitType==="pareja").length+1;
+    return "👮 Pareja en recorrido "+pairNo+crew;
+  }
+  const title=type==="moto"?"🏍️ Moto":"🚓 Patrulla";
+  return title+(number&&number!=="—"?" "+number:"")+crew;
+}
+function rapUnitOptions(selected=""){
+  const labels=[...new Set(draft.map((u,i)=>rapUnitLabel(u,i)).filter(Boolean))];
+  let html='<option value="">— Seleccionar unidad —</option>';
+  if(selected&&!labels.includes(selected))html+=`<option value="${esc(selected)}" selected>${esc(selected)} (copiado)</option>`;
+  return html+labels.map(label=>`<option value="${esc(label)}" ${label===selected?"selected":""}>${esc(label)}</option>`).join("");
+}
+function addRapAction(data={}){
+  rapDraft.push({zona:data.zona||"",actividad:data.actividad||"",hora_inicio:data.hora_inicio||"",hora_fin:data.hora_fin||"",asignado_a:data.asignado_a||""});
+  renderRapActions();
+}
+function setRap(i,k,v){rapDraft[i][k]=v}
+function delRapAction(i){rapDraft.splice(i,1);renderRapActions()}
+function renderRapActions(){
+  const container=document.getElementById("rapActions");
+  if(!container)return;
+  container.innerHTML=rapDraft.length?rapDraft.map((a,i)=>`<div class="item rap-action-row"><div class="grid"><div><label>Zona de Interés Policial</label><input value="${esc(a.zona)}" placeholder="Ej. ZIP 01" onchange="setRap(${i},'zona',this.value)"></div><div><label>Actividad</label><input value="${esc(a.actividad)}" placeholder="Ej. Control de carreteras" onchange="setRap(${i},'actividad',this.value)"></div><div><label>Patrulla, moto o pareja</label><select onchange="setRap(${i},'asignado_a',this.value)">${rapUnitOptions(a.asignado_a)}</select></div><div><label>Desde</label><input type="time" value="${esc(a.hora_inicio)}" onchange="setRap(${i},'hora_inicio',this.value)"></div><div><label>Hasta</label><input type="time" value="${esc(a.hora_fin)}" onchange="setRap(${i},'hora_fin',this.value)"></div><div><label>&nbsp;</label><button type="button" class="danger" onclick="delRapAction(${i})">🗑️ Quitar</button></div></div></div>`).join(""):"<div class=small>No hay acciones RAP agregadas.</div>";
+}
+function moveU(i,dir){const j=i+dir;if(j<0||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];renderUnits();renderRapActions()}
 function renderUnits(){units.innerHTML=draft.length?draft.map((u,i)=>{let pairNo=draft.slice(0,i).filter(x=>x.unitType==="pareja").length+1;let titulo=u.unitType==="moto"?(find(cars,u.car,"numero")!=="-"?"🏍️ Moto "+find(cars,u.car,"numero"):"🏍️ Moto") :u.unitType==="pareja"?"👮 Pareja "+pairNo:(find(cars,u.car,"numero")!=="-"?"🚓 Patrulla "+find(cars,u.car,"numero"):"🚓 Patrulla");return `<div class=card><h3>${titulo}</h3><div class=grid><div><label>Tipo de unidad</label><select onchange="setU(${i},'unitType',this.value)"><option value="patrulla" ${u.unitType==="patrulla"||!u.unitType?"selected":""}>🚓 Patrulla</option><option value="moto" ${u.unitType==="moto"?"selected":""}>🏍️ Moto</option><option value="pareja" ${u.unitType==="pareja"?"selected":""}>👮 Pareja en recorrido</option></select></div></div>${u.unitType==="pareja"?`<div class=grid><div><label>👮 Oficial 1</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Oficial 2</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Oficial 3</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`:u.unitType==="moto"?`<div class=grid><div><label>🏍️ Moto</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Oficial</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`:`<div class=grid><div><label>🚓 Patrulla</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Chofer</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Apoyo</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`}<h4>🍽️ Horario de alimentación</h4><div class=grid><div><label>🍳 Desayuno</label><input type=time value="${esc(u.breakfast)}" onchange="setU(${i},'breakfast',this.value)"></div><div><label>🍛 Almuerzo</label><input type=time value="${esc(u.lunch)}" onchange="setU(${i},'lunch',this.value)"></div><div><label>☕ Café</label><input type=time value="${esc(u.coffee)}" onchange="setU(${i},'coffee',this.value)"></div><div><label>📍 Sector asignado</label><input value="${esc(u.sector)}" onchange="setU(${i},'sector',this.value)"></div></div><div style="margin-top:10px"><label>🎯 Labores a realizar</label><textarea onchange="setU(${i},'tasks',this.value)">${esc(u.tasks)}</textarea></div><div class=actions style="align-items:center;gap:8px;flex-wrap:wrap"><span class="small" style="font-weight:800">Orden:</span><button type="button" onclick="moveU(${i},-1)" ${i===0?"disabled":""}>⬆️ Subir</button><button type="button" onclick="moveU(${i},1)" ${i===draft.length-1?"disabled":""}>⬇️ Bajar</button><button class=danger type="button" onclick="delU(${i})">Eliminar unidad</button></div></div>`}).join(""):"Agregá una unidad para comenzar."}
 async function getUnits(id){
   const a=await sb.from("asignaciones").select("*").eq("rol_id",id).order("created_at");
@@ -412,6 +453,11 @@ async function getUnits(id){
 async function getPersonalRol(id){
   const p=await sb.from("personal_rol").select("*").eq("rol_id",id).order("created_at");
   if(p.error){alert(p.error.message);return [];} return p.data||[];
+}
+async function getRapActions(id){
+  const r=await sb.from("rap_acciones").select("*").eq("rol_id",id).order("created_at");
+  if(r.error)return [];
+  return r.data||[];
 }
 function clearPersonalRol(){["personalOperaciones","personalProgramas","personalArmeria","personalLaboresMixtas"].forEach(id=>{let e=document.getElementById(id);if(e)e.innerHTML="";});}
 function addPersonalRolRow(area,data={}){
@@ -423,10 +469,19 @@ function addPersonalRolRow(area,data={}){
   cont.appendChild(row);
 }
 async function loadPersonalRol(id){clearPersonalRol();let p=await getPersonalRol(id);p.forEach(x=>addPersonalRolRow(x.area,{funcionario_id:x.funcionario_id||"",hora_entrada:x.hora_entrada||"06:00",hora_salida:x.hora_salida||"18:00"}));return p;}
-async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");let u=await getUnits(r.id);draft=u.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(r.id);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();}
+async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");let u=await getUnits(r.id);draft=u.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(r.id);rapDraft=await getRapActions(r.id);renderRapActions();roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();}
 async function saveRole(){
   const officeRows=[...document.querySelectorAll(".personal-rol-row")].filter(row=>row.querySelector(".rol-persona").value);
-  if(!draft.length&&!officeRows.length)return alert("Agregá una unidad operativa o personal de oficina.");
+  const rapRows=rapDraft.filter(a=>a.zona.trim()||a.actividad.trim()||a.asignado_a.trim()||a.hora_inicio||a.hora_fin);
+  if(!draft.length&&!officeRows.length&&!rapRows.length)return alert("Agregá una unidad operativa, personal de oficina o acción RAP.");
+  for(const a of rapRows){
+    if(!a.zona.trim()||!a.actividad.trim()||!a.asignado_a||!a.hora_inicio||!a.hora_fin)
+      return alert("Completá zona, actividad, unidad asignada y horario en cada acción RAP.");
+  }
+  if(rapRows.length){
+    const schemaCheck=await sb.from("rap_acciones").select("id").limit(1);
+    if(schemaCheck.error)return alert("Para guardar acciones RAP, ejecutá primero el SQL de creación de la tabla rap_acciones en Supabase.");
+  }
 
   for(let u of draft){
     let type=u.unitType||"patrulla";
@@ -516,17 +571,33 @@ if(personalRol.length){
     return alert(pr.error.message);
   }
 }
+  if(rapRows.length){
+    const rapPayload=rapRows.map(a=>({
+      rol_id:rr.data.id,
+      owner_id:user.id,
+      zona:a.zona.trim(),
+      actividad:a.actividad.trim(),
+      hora_inicio:a.hora_inicio,
+      hora_fin:a.hora_fin,
+      asignado_a:a.asignado_a
+    }));
+    const savedRap=await sb.from("rap_acciones").insert(rapPayload);
+    if(savedRap.error)return alert("El rol se guardó, pero no se pudieron guardar las acciones RAP: "+savedRap.error.message);
+  }
   draft=[];
+  rapDraft=[];
+  clearPersonalRol();
   await loadAll();
   await showReport(rr.data);
   go("informe");
 }
 function find(a,id,k){let x=a.find(y=>y.id===id);return x?x[k]:"—"}
 async function showReport(r){
-  const [us,office]=await Promise.all([getUnits(r.id),getPersonalRol(r.id)]);
+  const [us,office,rap]=await Promise.all([getUnits(r.id),getPersonalRol(r.id),getRapActions(r.id)]);
   const operationalHtml=us.length?us.map(u=>{let type=u.tipo_unidad||"patrulla",oficial1=find(people,u.chofer_id,"nombre"),oficial2=find(people,u.acompanante_id,"nombre"),apoyo=find(people,u.apoyo_id,"nombre"),vehiculo=find(cars,u.patrulla_id,"numero"),titulo="",personal="";if(type==="pareja"){titulo="🚶 Pareja en recorrido";personal=`<div><label>Oficial 1</label><b>👮 ${esc(oficial1)}</b></div><div><label>Oficial 2</label><b>👮 ${esc(oficial2)}</b></div>${apoyo!=="—"?`<div><label>Oficial 3</label><b>👮 ${esc(apoyo)}</b></div>`:""}`;}else if(type==="moto"){titulo=`🏍️ Moto ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Oficial</label><b>👮 ${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:""}`;}else{titulo=`🚓 Patrulla ${vehiculo!=="—"?esc(vehiculo):""}`;personal=`<div><label>Chofer</label><b>👮 ${esc(oficial1)}</b></div>${oficial2!=="—"?`<div><label>Acompañante</label><b>👮 ${esc(oficial2)}</b></div>`:""}${apoyo!=="—"?`<div><label>Apoyo</label><b>👮 ${esc(apoyo)}</b></div>`:""}`;}return `<div class="card unit-card"><h3>${titulo}</h3><div class="grid unit-grid">${personal}</div><div class="unit-meta"><div><label>🍽️ Alimentación</label><div>🍳 ${esc(u.desayuno||"-")} &nbsp; 🍛 ${esc(u.almuerzo||"-")} &nbsp; ☕ ${esc(u.cafe||"-")}</div></div><div><label>📍 Sector</label><b>${esc(u.sector||"-")}</b></div></div><div class="unit-tasks"><label>🎯 Labores</label><div>${esc(u.labores||"-")}</div></div></div>`;}).join(""):`<div class="card"><div class="small">No hay unidades operativas asignadas.</div></div>`;
   const order=["Operaciones","Programas","Armería","Labores Mixtas"],icons={"Operaciones":"👮","Programas":"🛡️","Armería":"🔫","Labores Mixtas":"🔄"};
   const officeHtml=office.length?order.map(area=>{let rows=office.filter(x=>x.area===area);if(!rows.length)return "";return `<div class="card office-card"><h3>${icons[area]} ${esc(area)}</h3>${rows.map(x=>`<div class="grid office-row"><div><label>Funcionario</label><b>👮 ${esc(find(people,x.funcionario_id,"nombre"))}</b></div><div><label>Horario</label><b>${esc(x.hora_entrada||"-")} - ${esc(x.hora_salida||"-")}</b></div></div>`).join("")}</div>`;}).join(""):`<div class="card"><div class="small">No hay personal de oficina asignado.</div></div>`;
+  const rapHtml=rap.length?`<div class="card"><h3>📍 Respuesta de Acción Policial (RAP)</h3><div class="rap-table-wrap"><table class="rap-table"><thead><tr><th>Zona de Interés Policial</th><th>Actividad</th><th>Horario</th></tr></thead><tbody>${rap.map(a=>`<tr><td>${esc(a.zona)}</td><td>${esc(a.actividad)}<span class="rap-assignee"><b>Asignado a:</b> ${esc(a.asignado_a)}</span></td><td>${esc(a.hora_inicio)} a ${esc(a.hora_fin)}</td></tr>`).join("")}</tbody></table></div></div>`:"";
   report.dataset.roleId=r.id;
   report.innerHTML=`<div class="reportHead"><b>ROL DE SERVICIO OPERATIVO</b><div>${r.fecha?esc(r.fecha.split("-").reverse().join("/")):""} — Horario: ${esc(r.turno||"")}</div>
     ${r.jefe_servicio?`<div>👮 Jefe en servicio: ${esc(find(people,r.jefe_servicio,"nombre"))}</div>`:""}
@@ -535,7 +606,7 @@ async function showReport(r){
     ${r.encargado_grupo?`<div>👮 Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
     ${r.encargado_escuadra?`<div>👮 Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
     ${r.oficial_guardia?`<div>👮 Oficial de guardia: ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
-    ${r.despachador?`<div>📻 Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}<div class="card summary-card"><b>Total de unidades operativas: ${us.length}</b><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="copyRoleForWhatsApp()">📲 Copiar para WhatsApp</button> <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
+    ${r.despachador?`<div>📻 Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}${rapHtml}<div class="card summary-card"><b>Total de unidades operativas: ${us.length}</b><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="copyRoleForWhatsApp()">📲 Copiar para WhatsApp</button> <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
 }
 
 async function copyRoleForWhatsApp(){
@@ -545,7 +616,7 @@ async function copyRoleForWhatsApp(){
   const r=roles.find(x=>String(x.id)===String(roleId));
   if(!r) return alert("No se encontró la información del rol actual.");
 
-  const [us,office]=await Promise.all([getUnits(r.id),getPersonalRol(r.id)]);
+  const [us,office,rap]=await Promise.all([getUnits(r.id),getPersonalRol(r.id),getRapActions(r.id)]);
   const lines=[];
   const add=v=>{if(v!==undefined&&v!==null&&String(v).trim()&&String(v).trim()!=="—")lines.push(String(v).trim());};
 
@@ -610,6 +681,11 @@ async function copyRoleForWhatsApp(){
     });
   }
 
+  if(rap.length){
+    lines.push("", "*📍 RESPUESTA DE ACCIÓN POLICIAL (RAP)*");
+    rap.forEach(a=>add(`• ${a.zona}: ${a.actividad} | ${a.hora_inicio} a ${a.hora_fin} | ${a.asignado_a}`));
+  }
+
   const plain=lines.join("\n").replace(/\n{3,}/g,"\n\n");
   const rich=plain
     .split("\n")
@@ -652,6 +728,8 @@ async function copyPreviousRole(){
   }));
 
   await loadPersonalRol(previous.id);
+  rapDraft=await getRapActions(previous.id);
+  renderRapActions();
 
   roleShift.value = previous.turno||"";
   roleChief.value = previous.jefe_servicio||"";
@@ -669,7 +747,7 @@ async function copyPreviousRole(){
   alert("Rol anterior copiado correctamente. Revisá los datos y luego guardalo como un nuevo rol.");
 }
 
-async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;let us=await getUnits(id);draft=us.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(id);roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();go("rol");}
+async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;let us=await getUnits(id);draft=us.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",sector:x.sector||"",tasks:x.labores||""}));await loadPersonalRol(id);rapDraft=await getRapActions(id);renderRapActions();roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();go("rol");}
 function refresh(){kPeople.textContent=people.length;kCars.textContent=cars.length;kRoles.textContent=roles.length;renderPeople();renderCars()}
 (async()=>{let s=await sb.auth.getSession();s.data.session?showApp():showLogin()})();
 </script></body></html>
