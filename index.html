@@ -214,7 +214,7 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 </style></head><body>
 <header><div class="wrap"><h1>🚓 Rol Operativo</h1><div class="sub">Planificación del servicio · Desarrollado por Leonel Pérez Gallardo · Versión 2.0</div></div></header>
 <section id="login" class="login card"><h2>🔐 Acceso</h2><p class="small">Ingresá con tu cuenta autorizada.</p><label>Correo</label><input id="email" type="email"><label style="margin-top:10px">Contraseña</label><input id="password" type="password"><div class="actions"><button onclick="signIn()">Iniciar sesión</button><button class="secondary" onclick="signUp()">Crear cuenta</button></div><p id="authMsg" class="small"></p></section>
-<div id="app" class="hidden"><nav><button data-p="inicio">Inicio</button><button data-p="personal">👮 Personal</button><button data-p="patrullas">🚓 Patrullas</button><button data-p="rol">📋 Nuevo rol</button><button data-p="historial">📚 Historial</button><button onclick="signOut()" class="secondary">Salir</button></nav><main class="wrap">
+<div id="app" class="hidden"><nav><button data-p="inicio">Inicio</button><button data-p="personal">👮 Personal</button><button data-p="patrullas">🚓 Patrullas</button><button data-p="rol">📋 Nuevo rol</button><button data-p="rap">📍 RAP</button><button data-p="historial">📚 Historial</button><button onclick="signOut()" class="secondary">Salir</button></nav><main class="wrap">
 <section id="inicio" class="page active"><div class="dashboard-hero"><div><div class="eyebrow">🚓 SISTEMA DE PLANIFICACIÓN OPERATIVA</div><h2>Centro de control</h2><p>Gestioná personal, unidades y roles de servicio desde un solo lugar.</p><div class="dashboard-actions"><button onclick="go('rol')">📋 Crear nuevo rol</button><button class="secondary" onclick="go('historial')">📚 Ver historial</button></div></div><div class="hero-badge"><div class="hero-badge-icon">🚔</div><div><div class="eyebrow">ESTADO</div><strong>Operativo</strong></div></div></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon">👮</div><div><div class="stat-number" id="kPeople">0</div><div class="stat-label">Funcionarios registrados</div></div></div><div class="stat-card"><div class="stat-icon">🚓</div><div><div class="stat-number" id="kCars">0</div><div class="stat-label">Unidades registradas</div></div></div><div class="stat-card"><div class="stat-icon">📋</div><div><div class="stat-number" id="kRoles">0</div><div class="stat-label">Roles creados</div></div></div></div><div class="quick-section"><div class="section-kicker">ACCESO RÁPIDO</div><h2>¿Qué necesitás hacer?</h2><div class="quick-grid"><button class="quick-card" onclick="go('rol')"><span class="quick-icon">📋</span><span><strong>Crear rol</strong><small>Organizá el próximo servicio</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('personal')"><span class="quick-icon">👮</span><span><strong>Gestionar personal</strong><small>Administrá funcionarios</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('patrullas')"><span class="quick-icon">🚓</span><span><strong>Gestionar unidades</strong><small>Administrá patrullas</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('historial')"><span class="quick-icon">📚</span><span><strong>Consultar historial</strong><small>Revisá roles anteriores</small></span><b class="quick-arrow">→</b></button></div></div></section>
 <section id="personal" class="page"><div class="card"><h2>👮 Personal</h2><div class="grid"><div><label>Nombre completo</label><input id="personName"></div><div><label>Cédula</label><input id="personCedula" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Número de cédula"></div><div><label>Función / puesto</label><input id="personRole"></div><div><label>Estado</label><select id="personState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addPerson()">➕ Agregar funcionario</button></div></div><div class="card" id="peopleList"></div></section>
 <section id="patrullas" class="page"><div class="card"><h2>🚓 Patrullas</h2><div class="grid"><div><label>Número</label><input id="carNumber"></div><div><label>Tipo</label><input id="carType" placeholder="Patrulla"></div><div><label>Estado</label><select id="carState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addCar()">➕ Agregar patrulla</button></div></div><div class="card" id="carsList"></div></section>
@@ -284,16 +284,21 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
   </div>
 </div>
 
-    <div class="card">
-      <h3>📍 Respuesta de Acción Policial (RAP)</h3>
-      <p class="small">Definí la zona, actividad, horario y la patrulla, moto o pareja en recorrido asignada. El informe mostrará también el personal de esa unidad.</p>
-      <div id="rapActions"></div>
-      <div class="actions"><button type="button" class="secondary" onclick="addRapAction()">➕ Agregar acción RAP</button></div>
-    </div>
-
     <div class="actions">
       <button class="secondary" onclick="copyPreviousRole()">📋 Copiar rol anterior</button>
         <button onclick="saveRole()">💾 Guardar rol</button>
+    </div>
+  </div>
+</section>
+<section id="rap" class="page">
+  <div class="card">
+    <h2>📍 Respuesta de Acción Policial (RAP)</h2>
+    <p class="small">Agregá acciones para las unidades del rol actual. Primero definí las patrullas, motos o parejas en recorrido y su personal en <b>Nuevo rol</b>; luego asignales zona, actividad y horario aquí.</p>
+    <div id="rapActions"></div>
+    <div class="actions">
+      <button type="button" class="secondary" onclick="addRapAction()">➕ Agregar acción RAP</button>
+      <button type="button" class="secondary" onclick="go('rol')">🚓 Definir unidades</button>
+      <button type="button" onclick="saveRole()">💾 Guardar rol con RAP</button>
     </div>
   </div>
 </section>
@@ -320,6 +325,8 @@ function go(p){
     fillCommandSelects();
     renderUnits();
   }
+
+  if(p==="rap")renderRapActions();
 
   if(p==="historial"){
     renderHistory();
