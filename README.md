@@ -13,6 +13,11 @@ Aplicación web estática para publicar con GitHub Pages.
 - Informe visual
 - Imprimir / guardar como PDF
 
+## Cédula del personal
+Antes de usar el campo de cédula, ejecuta una vez en **Supabase → SQL Editor** el script `supabase/migrations/20261026_add_personal_cedula.sql`. Agrega `cedula` como texto opcional en `public.personal`, conserva los registros existentes y permite guardar ceros iniciales.
+
+La cédula se administra desde la pestaña **Personal** y no se agrega a los informes ni al texto copiado para WhatsApp.
+
 ## GitHub Pages
 1. Crea un repositorio nuevo.
 2. Sube `index.html` y `manifest.json`.

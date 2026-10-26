@@ -211,7 +211,7 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 <section id="login" class="login card"><h2>🔐 Acceso</h2><p class="small">Ingresá con tu cuenta autorizada.</p><label>Correo</label><input id="email" type="email"><label style="margin-top:10px">Contraseña</label><input id="password" type="password"><div class="actions"><button onclick="signIn()">Iniciar sesión</button><button class="secondary" onclick="signUp()">Crear cuenta</button></div><p id="authMsg" class="small"></p></section>
 <div id="app" class="hidden"><nav><button data-p="inicio">Inicio</button><button data-p="personal">👮 Personal</button><button data-p="patrullas">🚓 Patrullas</button><button data-p="rol">📋 Nuevo rol</button><button data-p="historial">📚 Historial</button><button onclick="signOut()" class="secondary">Salir</button></nav><main class="wrap">
 <section id="inicio" class="page active"><div class="dashboard-hero"><div><div class="eyebrow">🚓 SISTEMA DE PLANIFICACIÓN OPERATIVA</div><h2>Centro de control</h2><p>Gestioná personal, unidades y roles de servicio desde un solo lugar.</p><div class="dashboard-actions"><button onclick="go('rol')">📋 Crear nuevo rol</button><button class="secondary" onclick="go('historial')">📚 Ver historial</button></div></div><div class="hero-badge"><div class="hero-badge-icon">🚔</div><div><div class="eyebrow">ESTADO</div><strong>Operativo</strong></div></div></div><div class="stats-grid"><div class="stat-card"><div class="stat-icon">👮</div><div><div class="stat-number" id="kPeople">0</div><div class="stat-label">Funcionarios registrados</div></div></div><div class="stat-card"><div class="stat-icon">🚓</div><div><div class="stat-number" id="kCars">0</div><div class="stat-label">Unidades registradas</div></div></div><div class="stat-card"><div class="stat-icon">📋</div><div><div class="stat-number" id="kRoles">0</div><div class="stat-label">Roles creados</div></div></div></div><div class="quick-section"><div class="section-kicker">ACCESO RÁPIDO</div><h2>¿Qué necesitás hacer?</h2><div class="quick-grid"><button class="quick-card" onclick="go('rol')"><span class="quick-icon">📋</span><span><strong>Crear rol</strong><small>Organizá el próximo servicio</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('personal')"><span class="quick-icon">👮</span><span><strong>Gestionar personal</strong><small>Administrá funcionarios</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('patrullas')"><span class="quick-icon">🚓</span><span><strong>Gestionar unidades</strong><small>Administrá patrullas</small></span><b class="quick-arrow">→</b></button><button class="quick-card" onclick="go('historial')"><span class="quick-icon">📚</span><span><strong>Consultar historial</strong><small>Revisá roles anteriores</small></span><b class="quick-arrow">→</b></button></div></div></section>
-<section id="personal" class="page"><div class="card"><h2>👮 Personal</h2><div class="grid"><div><label>Nombre completo</label><input id="personName"></div><div><label>Función / puesto</label><input id="personRole"></div><div><label>Estado</label><select id="personState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addPerson()">➕ Agregar funcionario</button></div></div><div class="card" id="peopleList"></div></section>
+<section id="personal" class="page"><div class="card"><h2>👮 Personal</h2><div class="grid"><div><label>Nombre completo</label><input id="personName"></div><div><label>Cédula</label><input id="personCedula" type="text" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="Número de cédula"></div><div><label>Función / puesto</label><input id="personRole"></div><div><label>Estado</label><select id="personState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addPerson()">➕ Agregar funcionario</button></div></div><div class="card" id="peopleList"></div></section>
 <section id="patrullas" class="page"><div class="card"><h2>🚓 Patrullas</h2><div class="grid"><div><label>Número</label><input id="carNumber"></div><div><label>Tipo</label><input id="carType" placeholder="Patrulla"></div><div><label>Estado</label><select id="carState"><option>Disponible</option><option>No disponible</option></select></div></div><div class="actions"><button onclick="addCar()">➕ Agregar patrulla</button></div></div><div class="card" id="carsList"></div></section>
 <section id="rol" class="page">
   <div class="card">
@@ -353,7 +353,7 @@ async function loadAll(){
   people=p.data||[]; cars=c.data||[]; roles=r.data||[]; personalRol=pr.data||[];
   fillCommandSelects(); refresh();
 }
-async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personRole.value="";await loadAll()}}
+async function addPerson(){let n=personName.value.trim();if(!n)return alert("Ingresá el nombre.");let r=await sb.from("personal").insert({nombre:n,cedula:personCedula.value.trim()||null,funcion:personRole.value.trim(),estado:personState.value});if(r.error)alert(r.error.message);else{personName.value="";personCedula.value="";personRole.value="";await loadAll()}}
 async function delPerson(id){
   if(confirm("¿Eliminar funcionario?")){
     let r=await sb.from("personal").delete().eq("id",id);
@@ -371,18 +371,22 @@ async function editPerson(id){
   nombre=nombre.trim();
   if(!nombre)return alert("El nombre no puede quedar vacío.");
 
+  let cedula=prompt("Cédula:",p.cedula||"");
+  if(cedula===null)return;
+  cedula=cedula.trim();
+
   let funcion=prompt("Función / puesto:",p.funcion||"");
   if(funcion===null)return;
   funcion=funcion.trim();
 
   let r=await sb.from("personal")
-    .update({nombre:nombre,funcion:funcion})
+    .update({nombre:nombre,cedula:cedula||null,funcion:funcion})
     .eq("id",id);
 
   if(r.error)alert(r.error.message);
   else await loadAll();
 }
-function renderPeople(){peopleList.innerHTML=people.length?people.map(p=>`<div class=item><b>${esc(p.nombre)}</b><div class=small>${esc(p.funcion||"Sin función")} · ${esc(p.estado)}</div><div class=actions><button onclick="editPerson('${p.id}')">✏️ Editar</button><button class=danger onclick="delPerson('${p.id}')">Eliminar</button></div></div>`).join(""):"<div class=small>No hay funcionarios.</div>"}
+function renderPeople(){peopleList.innerHTML=people.length?people.map(p=>`<div class=item><b>${esc(p.nombre)}</b><div class=small>${esc(p.funcion||"Sin función")} · ${esc(p.estado)}</div>${p.cedula?`<div class=small>Cédula: ${esc(p.cedula)}</div>`:""}<div class=actions><button onclick="editPerson('${p.id}')">✏️ Editar</button><button class=danger onclick="delPerson('${p.id}')">Eliminar</button></div></div>`).join(""):"<div class=small>No hay funcionarios.</div>"}
 async function addCar(){let n=carNumber.value.trim();if(!n)return alert("Ingresá el número.");let r=await sb.from("patrullas").insert({numero:n,tipo:carType.value.trim(),estado:carState.value});if(r.error)alert(r.error.message);else{carNumber.value="";carType.value="";await loadAll()}}
 async function delCar(id){if(confirm("¿Eliminar patrulla?")){let r=await sb.from("patrullas").delete().eq("id",id);if(r.error)alert(r.error.message);else await loadAll()}}
 function renderCars(){carsList.innerHTML=cars.length?cars.map(c=>`<div class=item><b>🚓 ${esc(c.numero)}</b><div class=small>${esc(c.tipo||"Patrulla")} · ${esc(c.estado)}</div><div class=actions><button class=danger onclick="delCar('${c.id}')">Eliminar</button></div></div>`).join(""):"<div class=small>No hay patrullas.</div>"}
