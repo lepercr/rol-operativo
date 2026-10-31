@@ -664,8 +664,13 @@ let rows=draft.map(u=>({
   cena:u.dinner||null,
   sector:u.sector||null,}));
 
+  let dinnerColumnAvailable=true;
   let ir=await sb.from("asignaciones").insert(rows);
-
+  if(ir.error&&/cena|column|schema cache|could not find/i.test(ir.error.message||"")){
+    const compatibleRows=rows.map(({cena,...row})=>row);
+    ir=await sb.from("asignaciones").insert(compatibleRows);
+    if(!ir.error)dinnerColumnAvailable=false;
+  }
   if(ir.error){
     await sb.from("roles").delete().eq("id",rr.data.id);
     return alert(ir.error.message);
@@ -708,6 +713,7 @@ if(personalRol.length){
   await loadAll();
   await showReport(rr.data);
   go("informe");
+  if(!dinnerColumnAvailable)alert("El rol se guardó, pero la cena no quedó registrada porque falta la columna cena en Supabase. Aplicá la migración supabase/migrations/20261031_add_cena_to_asignaciones.sql.");
 }
 function find(a,id,k){let x=a.find(y=>y.id===id);return x?x[k]:"—"}
 async function showReport(r){
