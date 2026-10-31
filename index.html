@@ -141,6 +141,18 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 @media(max-width:700px){.rap-meals{grid-template-columns:repeat(2,minmax(100px,1fr))}}
 .rap-table th,.rap-table td{border:2px solid #173d5c;padding:11px 12px;text-align:center;vertical-align:middle}
 .rap-table th{background:#eaf7ff;color:#123b5e;font-weight:850}
+.rap-unit-group{border:1px solid #e5e5ea;border-radius:18px;padding:20px;margin:16px 0;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.035)}
+.rap-unit-group h4{margin:0 0 14px;color:#1d1d1f;font-size:18px;font-weight:650;letter-spacing:-.02em}
+.rap-meals{gap:10px;margin:10px 0 16px}
+.rap-meals>div{background:#f5f5f7;border:0;border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.rap-meals b{color:#86868b;font-size:11px;font-weight:600;letter-spacing:.01em}
+.rap-meals span{color:#1d1d1f;font-size:15px;font-weight:650;font-variant-numeric:tabular-nums}
+.rap-unit-group .rap-table{border-collapse:collapse;min-width:560px;background:transparent}
+.rap-unit-group .rap-table th,.rap-unit-group .rap-table td{border:0;border-bottom:1px solid #e5e5ea;padding:13px 16px;text-align:left;vertical-align:top}
+.rap-unit-group .rap-table th{background:transparent;color:#86868b;font-size:11px;font-weight:650;letter-spacing:.045em;text-transform:uppercase}
+.rap-unit-group .rap-table td{color:#1d1d1f;font-size:14px;line-height:1.45}
+.rap-unit-group .rap-table td:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;color:#424245}
+.rap-unit-group .rap-table tbody tr:last-child td{border-bottom:0}
 .rap-assignee{display:block;margin-top:5px;color:#46627c;font-size:12px}
 @media(max-width:700px){
   #report .unit-grid,#report .office-row{grid-template-columns:1fr}
