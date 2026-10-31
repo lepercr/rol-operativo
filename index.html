@@ -527,10 +527,10 @@ function renderRapPreview(){
   const container=document.getElementById("rapReport");
   if(!container)return;
   const rows=rapRowsInDraft();
-  if(!rows.length){container.innerHTML="<div class=small>Agregá una acción para ver el reporte RAP.</div>";return;}
+  const units=draft.map((u,i)=>({label:rapUnitLabel(u,i),unit:u}));
+  if(!rows.length&&!units.length){container.innerHTML="<div class=small>Agregá una unidad para ver su horario de alimentación.</div>";return;}
   const fecha=document.getElementById("roleDate")?.value||"";
   const turno=document.getElementById("roleShift")?.value||"";
-  const units=draft.map((u,i)=>({label:rapUnitLabel(u,i),unit:u}));
   container.innerHTML=`<h3>Vista previa: Respuesta de Acción Policial (RAP)</h3><div class="small">${fecha?esc(fecha.split("-").reverse().join("/"))+" · ":""}${turno?"Horario del rol: "+esc(turno):""}</div>${renderGroupedRap(rows,units)}`;
 }
 async function copyRapForWhatsApp(){
