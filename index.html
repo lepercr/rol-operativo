@@ -308,6 +308,7 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 
     <div class="actions">
       <button class="secondary" onclick="copyPreviousRole()">📋 Copiar rol anterior</button>
+        <button class="secondary" type="button" onclick="startNewRole()">🆕 Nuevo rol en blanco</button>
         <button onclick="saveRole()">💾 Guardar rol</button>
     </div>
   </div>
@@ -334,7 +335,7 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 <script>
 const sb=supabase.createClient("https://twnpkicoenwonvvxcqjm.supabase.co","sb_publishable_JI19iTrqw0ywlmx7vhCM9w_QYCmrDmA");
 let people=[],cars=[],roles=[],personalRol=[],draft=[],rapDraft=[],rapSaved=[],activeRoleId=null;
-document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>b.dataset.p==="rol"?startNewRole():go(b.dataset.p));
+document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>go(b.dataset.p));
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const msg=t=>authMsg.textContent=t;
 async function signIn(){msg("Ingresando...");let r=await sb.auth.signInWithPassword({email:email.value.trim(),password:password.value});msg(r.error?r.error.message:"Sesión iniciada.");if(!r.error)await showApp()}
@@ -606,10 +607,15 @@ function renderRapRoleOptions(){
   else select.value="";
 }
 function startNewRole(){
+  const today=new Date().toISOString().slice(0,10);
+  const hasRoleData=draft.length||rapRowsInDraft().length||document.querySelectorAll(".personal-rol-row").length||
+    ["roleChief","roleDeputy","roleDistrict","roleGroup","roleLeader","oficialGuardia","despachador"].some(id=>document.getElementById(id)?.value)||
+    (roleShift.value&&roleShift.value!=="06:00 - 18:00")||(roleDate.value&&roleDate.value!==today);
+  if(hasRoleData&&!confirm("¿Empezar un rol en blanco? Se descartarán los cambios que todavía no guardaste."))return;
   activeRoleId=null;rapSaved=[];rapDraft=[];draft=[];
   clearPersonalRol();
   ["roleChief","roleDeputy","roleDistrict","roleGroup","roleLeader","oficialGuardia","despachador"].forEach(id=>{const field=document.getElementById(id);if(field)field.value="";});
-  roleDate.value=new Date().toISOString().slice(0,10);
+  roleDate.value=today;
   roleShift.value="06:00 - 18:00";
   renderRapRoleOptions();
   const rapSelect=document.getElementById("rapRoleSelect");if(rapSelect)rapSelect.value="";
