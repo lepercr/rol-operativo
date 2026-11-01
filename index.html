@@ -310,13 +310,14 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 <section id="rap" class="page">
   <div class="card">
     <h2>📍 Respuesta de Acción Policial (RAP)</h2>
-    <p class="small">Agregá acciones para las unidades del rol actual. Primero definí las patrullas, motos o parejas en recorrido y su personal en <b>Nuevo rol</b>; luego asignales zona, actividad y horario aquí.</p>
+    <p class="small">Seleccioná un rol guardado y agregá una o varias acciones para sus unidades. Cada acción incluye zona, actividad y horario.</p>
+    <div class="grid"><div><label>Rol guardado</label><select id="rapRoleSelect" onchange="loadRapRole(this.value)"></select></div></div>
     <div id="rapActions"></div>
     <div class="actions">
       <button type="button" class="secondary" onclick="addRapAction()">➕ Agregar acción RAP</button>
       <button type="button" class="secondary" onclick="go('rol')">🚓 Definir unidades</button>
       <button type="button" class="secondary" onclick="copyRapForWhatsApp()">📲 Copiar solo RAP</button>
-      <button type="button" onclick="saveRole()">💾 Guardar rol con RAP</button>
+      <button type="button" onclick="saveRapActions()">💾 Guardar acciones RAP</button>
     </div>
     <div id="rapReport" class="card"></div>
   </div>
@@ -327,8 +328,8 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const sb=supabase.createClient("https://twnpkicoenwonvvxcqjm.supabase.co","sb_publishable_JI19iTrqw0ywlmx7vhCM9w_QYCmrDmA");
-let people=[],cars=[],roles=[],personalRol=[],draft=[],rapDraft=[],rapSavedRoleId=null;
-document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>go(b.dataset.p));
+let people=[],cars=[],roles=[],personalRol=[],draft=[],rapDraft=[],rapSaved=[],activeRoleId=null;
+document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>b.dataset.p==="rol"?startNewRole():go(b.dataset.p));
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const msg=t=>authMsg.textContent=t;
 async function signIn(){msg("Ingresando...");let r=await sb.auth.signInWithPassword({email:email.value.trim(),password:password.value});msg(r.error?r.error.message:"Sesión iniciada.");if(!r.error)await showApp()}
@@ -341,12 +342,15 @@ function go(p){
   document.getElementById(p).classList.add("active");
 
   if(p==="rol"){
-    if(rapSavedRoleId){rapDraft=[];rapSavedRoleId=null;renderRapActions();renderRapPreview();}
     fillCommandSelects();
     renderUnits();
   }
 
-  if(p==="rap"){renderRapActions();renderRapPreview();}
+  if(p==="rap"){
+    renderRapRoleOptions();
+    if(!activeRoleId&&document.getElementById("rapRoleSelect")?.value)loadRapRole(document.getElementById("rapRoleSelect").value);
+    else{renderRapActions();renderRapPreview();}
+  }
 
   if(p==="historial"){
     renderHistory();
@@ -538,7 +542,7 @@ function renderGroupedRap(actions,unitEntries){
 function renderRapPreview(){
   const container=document.getElementById("rapReport");
   if(!container)return;
-  const rows=rapRowsInDraft();
+  const rows=[...rapSaved,...rapRowsInDraft()];
   const units=draft.map((u,i)=>({label:rapUnitLabel(u,i),unit:u}));
   if(!rows.length&&!units.length){container.innerHTML="<div class=small>Agregá una unidad para ver su horario de alimentación.</div>";return;}
   const fecha=document.getElementById("roleDate")?.value||"";
@@ -546,7 +550,7 @@ function renderRapPreview(){
   container.innerHTML=`<h3>Vista previa: Respuesta de Acción Policial (RAP)</h3><div class="small">${fecha?esc(fecha.split("-").reverse().join("/"))+" · ":""}${turno?"Horario del rol: "+esc(turno):""}</div>${renderGroupedRap(rows,units)}`;
 }
 async function copyRapForWhatsApp(){
-  const rows=rapRowsInDraft();
+  const rows=[...rapSaved,...rapRowsInDraft()];
   if(!rows.length)return alert("Agregá al menos una acción RAP para copiar.");
   const fecha=document.getElementById("roleDate")?.value||"";
   const turno=document.getElementById("roleShift")?.value||"";
@@ -583,6 +587,63 @@ async function getRapActions(id){
   if(r.error)return [];
   return r.data||[];
 }
+function renderRapRoleOptions(){
+  const select=document.getElementById("rapRoleSelect");
+  if(!select)return;
+  const selected=activeRoleId||select.value;
+  select.innerHTML='<option value="">— Seleccionar rol —</option>'+roles.slice().reverse().map(r=>{
+    const date=r.fecha?String(r.fecha).split("-").reverse().join("/"):"Sin fecha";
+    return `<option value="${r.id}">${esc(date)} · ${esc(r.turno||"Sin horario")} · ${esc(r.encargado||"Rol operativo")}</option>`;
+  }).join("");
+  if(selected&&roles.some(r=>String(r.id)===String(selected)))select.value=selected;
+  else select.value="";
+}
+function startNewRole(){
+  activeRoleId=null;rapSaved=[];rapDraft=[];draft=[];
+  clearPersonalRol();
+  ["roleChief","roleDeputy","roleDistrict","roleGroup","roleLeader","oficialGuardia","despachador"].forEach(id=>{const field=document.getElementById(id);if(field)field.value="";});
+  roleDate.value=new Date().toISOString().slice(0,10);
+  roleShift.value="06:00 - 18:00";
+  renderRapRoleOptions();
+  const rapSelect=document.getElementById("rapRoleSelect");if(rapSelect)rapSelect.value="";
+  renderRapActions();renderRapPreview();go("rol");
+}
+async function loadRapRole(id){
+  if(!id)return;
+  const hasUnsavedRole=!activeRoleId&&draft.length>0;
+  if((rapRowsInDraft().length||hasUnsavedRole)&&String(id)!==String(activeRoleId)&&!confirm("Hay datos sin guardar. ¿Descartarlos y cargar otro rol?")){
+    const select=document.getElementById("rapRoleSelect");if(select)select.value=activeRoleId||"";return;
+  }
+  const role=roles.find(r=>String(r.id)===String(id));if(!role)return;
+  const [assignments,actions]=await Promise.all([getUnits(id),getRapActions(id)]);
+  activeRoleId=id;
+  draft=assignments.map(u=>({unitType:u.tipo_unidad||"patrulla",car:u.patrulla_id||"",driver:u.chofer_id||"",comp:u.acompanante_id||"",support:u.apoyo_id||"",breakfast:u.desayuno||"",lunch:u.almuerzo||"",coffee:u.cafe||"",dinner:u.cena||"",sector:u.sector||""}));
+  rapSaved=actions;rapDraft=[];
+  roleDate.value=role.fecha||"";roleShift.value=role.turno||"06:00 - 18:00";
+  const select=document.getElementById("rapRoleSelect");if(select)select.value=id;
+  renderUnits();renderRapActions();renderRapPreview();
+}
+async function saveRapActions(){
+  if(!activeRoleId)return alert("Primero guardá un rol o seleccioná uno guardado.");
+  const rows=rapRowsInDraft();
+  if(!rows.length)return alert("Agregá al menos una acción RAP antes de guardar.");
+  for(const a of rows){
+    if(!a.zona.trim()||!a.actividad.trim()||!a.unidad||!a.hora_inicio||!a.hora_fin||!Array.isArray(a.personal_ids)||!a.personal_ids.length)
+      return alert("Completá zona, actividad, unidad, al menos un funcionario y horario en cada acción RAP.");
+    if(!validMilitaryTime(a.hora_inicio)||!validMilitaryTime(a.hora_fin))return alert("Usá HH:MM (00:00–23:59) en los horarios de las acciones RAP.");
+  }
+  const schemaCheck=await sb.from("rap_acciones").select("id").limit(1);
+  if(schemaCheck.error)return alert("Para guardar acciones RAP, ejecutá el SQL actualizado de rap_acciones en Supabase.");
+  const {data:{user},error:userError}=await sb.auth.getUser();
+  if(userError||!user)return alert("No hay un usuario autenticado. Volvé a iniciar sesión.");
+  const payload=rows.map(a=>({rol_id:activeRoleId,owner_id:user.id,zona:a.zona.trim(),actividad:a.actividad.trim(),hora_inicio:a.hora_inicio,hora_fin:a.hora_fin,unidad:a.unidad,personal_ids:a.personal_ids,asignado_a:[a.unidad,rapPersonnelNames(a).join(", ")].filter(Boolean).join(" — ")}));
+  const result=await sb.from("rap_acciones").insert(payload);
+  if(result.error)return alert("No se pudieron guardar las acciones RAP: "+result.error.message);
+  rapDraft=[];rapSaved=await getRapActions(activeRoleId);
+  renderRapActions();renderRapPreview();
+  const role=roles.find(r=>String(r.id)===String(activeRoleId));if(role)await showReport(role);
+  alert("Acciones RAP guardadas con el rol seleccionado.");
+}
 function clearPersonalRol(){["personalOperaciones","personalProgramas","personalArmeria","personalLaboresMixtas"].forEach(id=>{let e=document.getElementById(id);if(e)e.innerHTML="";});}
 function addPersonalRolRow(area,data={}){
   const ids={"Operaciones":"personalOperaciones","Programas":"personalProgramas","Armería":"personalArmeria","Labores Mixtas":"personalLaboresMixtas"};
@@ -595,7 +656,7 @@ function addPersonalRolRow(area,data={}){
 async function loadPersonalRol(id){clearPersonalRol();let p=await getPersonalRol(id);p.forEach(x=>addPersonalRolRow(x.area,{funcionario_id:x.funcionario_id||"",hora_entrada:x.hora_entrada||"06:00",hora_salida:x.hora_salida||"18:00"}));return p;}
 async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");let u=await getUnits(r.id);draft=u.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",dinner:x.cena||"",sector:x.sector||""}));await loadPersonalRol(r.id);rapDraft=await getRapActions(r.id);renderRapActions();roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();}
 async function saveRole(){
-  if(rapSavedRoleId)return alert("Este RAP ya está guardado con su rol. Para crear otro, iniciá un nuevo rol desde la pestaña Nuevo rol.");
+  if(activeRoleId)return alert("Este rol ya está guardado. Para agregar acciones, usá la pestaña RAP.");
   const officeRows=[...document.querySelectorAll(".personal-rol-row")].filter(row=>row.querySelector(".rol-persona").value);
   const rapRows=rapRowsInDraft();
   if(!draft.length&&!officeRows.length&&!rapRows.length)return alert("Agregá una unidad operativa, personal de oficina o acción RAP.");
@@ -719,8 +780,9 @@ if(personalRol.length){
     const savedRap=await sb.from("rap_acciones").insert(rapPayload);
     if(savedRap.error)return alert("El rol se guardó, pero no se pudieron guardar las acciones RAP: "+savedRap.error.message);
   }
-  draft=[];
-  rapSavedRoleId=rr.data.id;
+  activeRoleId=rr.data.id;
+  rapSaved=rapRows.length?await getRapActions(rr.data.id):[];
+  rapDraft=[];
   clearPersonalRol();
   await loadAll();
   await showReport(rr.data);
@@ -742,7 +804,7 @@ async function showReport(r){
     ${r.encargado_grupo?`<div>👮 Encargado de grupo: ${esc(find(people,r.encargado_grupo,"nombre"))}</div>`:""}
     ${r.encargado_escuadra?`<div>👮 Encargado de escuadra: ${esc(find(people,r.encargado_escuadra,"nombre"))}</div>`:""}
     ${r.oficial_guardia?`<div>👮 Oficial de guardia: ${esc(find(people,r.oficial_guardia,"nombre"))}</div>`:""}
-    ${r.despachador?`<div>📻 Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}${rapHtml}<div class="card summary-card"><b>Total de unidades operativas: ${us.length}</b><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button onclick="copyRoleForWhatsApp()">📲 Copiar para WhatsApp</button> <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
+    ${r.despachador?`<div>📻 Despachador: ${esc(find(people,r.despachador,"nombre"))}</div>`:""}</div><h2>🚓 Unidades operativas</h2>${operationalHtml}<h2>🏢 Personal de oficina</h2>${officeHtml}${rapHtml}<div class="card summary-card"><b>Total de unidades operativas: ${us.length}</b><b>Total de personal de oficina: ${office.length}</b></div><div class="card no-print"><button class="secondary" onclick="openRapForRole('${r.id}')">📍 Agregar acciones RAP</button> <button onclick="copyRoleForWhatsApp()">📲 Copiar para WhatsApp</button> <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div>`;
 }
 
 async function copyRoleForWhatsApp(){
@@ -842,6 +904,7 @@ async function copySavedRapForWhatsApp(id){
   try{await navigator.clipboard.writeText(lines.join("\n"));alert("Reporte RAP copiado. Ahora abrí WhatsApp y pegalo.");}catch(e){alert("No se pudo copiar automáticamente. Permití el acceso al portapapeles e intentá de nuevo.");}
 }
 async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
+async function openRapForRole(id){await loadRapRole(id);go("rap");}
 async function copyPreviousRole(){
   if(!roles.length){
     return alert("No hay un rol anterior disponible para copiar.");
@@ -890,6 +953,6 @@ async function copyPreviousRole(){
 }
 
 async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;let us=await getUnits(id);draft=us.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",dinner:x.cena||"",sector:x.sector||""}));await loadPersonalRol(id);rapDraft=await getRapActions(id);renderRapActions();roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();go("rol");}
-function refresh(){kPeople.textContent=people.length;kCars.textContent=cars.length;kRoles.textContent=roles.length;renderPeople();renderCars()}
+function refresh(){kPeople.textContent=people.length;kCars.textContent=cars.length;kRoles.textContent=roles.length;renderPeople();renderCars();renderRapRoleOptions()}
 (async()=>{let s=await sb.auth.getSession();s.data.session?showApp():showLogin()})();
 </script></body></html>
