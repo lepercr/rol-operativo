@@ -610,6 +610,10 @@ function startNewRole(){
 }
 async function loadRapRole(id){
   if(!id)return;
+  if(String(id)===String(activeRoleId)&&rapDraft.length){
+    const currentSelect=document.getElementById("rapRoleSelect");if(currentSelect)currentSelect.value=id;
+    renderRapActions();renderRapPreview();return;
+  }
   const hasUnsavedRole=!activeRoleId&&draft.length>0;
   if((rapRowsInDraft().length||hasUnsavedRole)&&String(id)!==String(activeRoleId)&&!confirm("Hay datos sin guardar. ¿Descartarlos y cargar otro rol?")){
     const select=document.getElementById("rapRoleSelect");if(select)select.value=activeRoleId||"";return;
