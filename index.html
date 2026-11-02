@@ -233,6 +233,18 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
   body{background:white}.page{display:none!important}#informe{display:block!important}
   .card{box-shadow:none;border:1px solid #ddd}
 }
+
+/* RAP: separar visualmente cada binomio y su recorrido */
+.rap-unit-group{position:relative;border:1.5px solid #c7e4f4;border-left:5px solid #2795c9;border-radius:20px;padding:22px 24px;margin:20px 0;background:linear-gradient(135deg,#fff 0%,#fbfdff 100%);box-shadow:0 8px 24px rgba(25,76,110,.07)}
+.rap-unit-group h4{margin:0 0 16px;padding:0 0 14px;border-bottom:1px solid #e3eef5;color:#173b5c;font-size:19px;font-weight:700;line-height:1.4;letter-spacing:-.02em}
+.rap-meals{gap:10px;margin:12px 0 18px}
+.rap-meals>div{border:1px solid #e5eef4;background:#f7fbfe;border-radius:13px;padding:12px 14px}
+.rap-table-wrap{overflow-x:auto;border:1px solid #e4edf3;border-radius:14px;background:#fff}
+.rap-unit-group .rap-table{min-width:560px}
+.rap-unit-group .rap-table th,.rap-unit-group .rap-table td{border:0;border-bottom:1px solid #edf1f4;padding:14px 16px}
+.rap-unit-group .rap-table th{background:#f7fafc;color:#718096}
+.rap-unit-group .rap-table tbody tr:last-child td{border-bottom:0}
+@media(max-width:700px){.rap-unit-group{padding:17px 15px;border-radius:17px;margin:16px 0}.rap-unit-group h4{font-size:17px}.rap-unit-group .rap-table{min-width:500px}}
 </style></head><body>
 <header><div class="wrap"><h1>🚓 Rol Operativo</h1><div class="sub">Planificación del servicio · Desarrollado por Leonel Pérez Gallardo · Versión 2.0</div></div></header>
 <section id="login" class="login card"><h2>🔐 Acceso</h2><p class="small">Ingresá con tu cuenta autorizada.</p><label>Correo</label><input id="email" type="email"><label style="margin-top:10px">Contraseña</label><input id="password" type="password"><div class="actions"><button onclick="signIn()">Iniciar sesión</button><button class="secondary" onclick="signUp()">Crear cuenta</button></div><p id="authMsg" class="small"></p></section>
