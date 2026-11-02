@@ -740,7 +740,7 @@ async function loadRapRole(id){
   const role=roles.find(r=>String(r.id)===String(id));if(!role)return;
   const [assignments,actions]=await Promise.all([getUnits(id),getRapActions(id)]);
   activeRoleId=id;
-  draft=assignments.map(u=>({unitType:u.tipo_unidad||"patrulla",car:u.patrulla_id||"",driver:u.chofer_id||"",comp:u.acompanante_id||"",support:u.apoyo_id||"",breakfast:u.desayuno||"",lunch:u.almuerzo||"",coffee:u.cafe||"",dinner:u.cena||"",noMeals:!u.desayuno&&!u.almuerzo&&!u.cafe&&!u.cena,sector:u.sector||""}));
+  draft=assignments.map(u=>({unitType:u.tipo_unidad||"patrulla",car:u.patrulla_id||"",driver:u.chofer_id||"",comp:u.acompanante_id||"",support:u.apoyo_id||"",breakfast:u.desayuno||"",lunch:u.almuerzo||"",coffee:u.cafe||"",dinner:u.cena||"",noMeals:false,sector:u.sector||""}));
   rapSaved=actions;rapDraft=[];
   roleDate.value=role.fecha||"";roleShift.value=role.turno||"06:00 - 18:00";
   const select=document.getElementById("rapRoleSelect");if(select)select.value=id;
@@ -779,7 +779,7 @@ function addPersonalRolRow(area,data={}){
   cont.appendChild(row);
 }
 async function loadPersonalRol(id){clearPersonalRol();let p=await getPersonalRol(id);p.forEach(x=>addPersonalRolRow(x.area,{funcionario_id:x.funcionario_id||"",hora_entrada:x.hora_entrada||"06:00",hora_salida:x.hora_salida||"18:00"}));return p;}
-async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");activeRoleId=null;rapSaved=[];let u=await getUnits(r.id);draft=u.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",dinner:x.cena||"",noMeals:!x.desayuno&&!x.almuerzo&&!x.cafe&&!x.cena,sector:x.sector||""}));await loadPersonalRol(r.id);rapDraft=await getRapActions(r.id);renderRapActions();roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();}
+async function copyLast(){let r=roles.at(-1);if(!r)return alert("No hay rol anterior.");activeRoleId=null;rapSaved=[];let u=await getUnits(r.id);draft=u.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",dinner:x.cena||"",noMeals:false,sector:x.sector||""}));await loadPersonalRol(r.id);rapDraft=await getRapActions(r.id);renderRapActions();roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();}
 async function saveRole(){
   if(activeRoleId)return alert("Este rol ya está guardado y no se puede duplicar desde aquí. Para agregar acciones, usá RAP; para empezar otro, elegí Nuevo rol en blanco.");
   const officeRows=[...document.querySelectorAll(".personal-rol-row")].filter(row=>row.querySelector(".rol-persona").value);
@@ -1113,7 +1113,7 @@ async function copyPreviousRole(){
     breakfast:x.desayuno||"",
     lunch:x.almuerzo||"",
     coffee:x.cafe||"",
-    dinner:x.cena||"",noMeals:!x.desayuno&&!x.almuerzo&&!x.cafe&&!x.cena,
+    dinner:x.cena||"",noMeals:false,
     sector:x.sector||"",
     
   }));
@@ -1138,7 +1138,7 @@ async function copyPreviousRole(){
   alert("Rol anterior copiado correctamente. Revisá los datos y luego guardalo como un nuevo rol.");
 }
 
-async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;activeRoleId=null;rapSaved=[];let us=await getUnits(id);draft=us.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",dinner:x.cena||"",noMeals:!x.desayuno&&!x.almuerzo&&!x.cafe&&!x.cena,sector:x.sector||""}));await loadPersonalRol(id);rapDraft=await getRapActions(id);renderRapActions();roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();go("rol");}
+async function duplicateRole(id){let r=roles.find(x=>x.id===id);if(!r)return;activeRoleId=null;rapSaved=[];let us=await getUnits(id);draft=us.map(x=>({unitType:x.tipo_unidad||"patrulla",car:x.patrulla_id||"",driver:x.chofer_id||"",comp:x.acompanante_id||"",support:x.apoyo_id||"",breakfast:x.desayuno||"",lunch:x.almuerzo||"",coffee:x.cafe||"",dinner:x.cena||"",noMeals:false,sector:x.sector||""}));await loadPersonalRol(id);rapDraft=await getRapActions(id);renderRapActions();roleDate.value=new Date().toISOString().slice(0,10);roleShift.value=r.turno||"";roleLeader.value=r.encargado||"";renderUnits();go("rol");}
 function refresh(){kPeople.textContent=people.length;kCars.textContent=cars.length;kRoles.textContent=roles.length;renderPeople();renderCars();renderRapRoleOptions()}
 (async()=>{let s=await sb.auth.getSession();s.data.session?showApp():showLogin()})();
 </script></body></html>
