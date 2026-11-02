@@ -570,21 +570,46 @@ function renderRapPreview(){
   const turno=document.getElementById("roleShift")?.value||"";
   container.innerHTML=`<h3>Vista previa: Respuesta de Acción Policial (RAP)</h3><div class="small">${fecha?esc(fecha.split("-").reverse().join("/"))+" · ":""}${turno?"Horario del rol: "+esc(turno):""}</div>${renderGroupedRap(rows,units)}`;
 }
+function buildGroupedRapWhatsApp(actions,unitEntries,fecha,turno){
+  const groups=new Map();
+  unitEntries.forEach(entry=>groups.set(entry.label,{label:entry.label,unit:entry.unit,actions:[]}));
+  actions.forEach(action=>{
+    const label=action.unidad||action.asignado_a||"Unidad sin asignar";
+    if(!groups.has(label))groups.set(label,{label,unit:null,actions:[]});
+    groups.get(label).actions.push(action);
+  });
+  const lines=["*RESPUESTA DE ACCIÓN POLICIAL (RAP)*"];
+  if(fecha)lines.push("Fecha: "+String(fecha).split("-").reverse().join("/"));
+  if(turno)lines.push("Horario del rol: "+turno);
+  [...groups.values()].forEach(group=>{
+    const u=group.unit||{};
+    const names=[u.driver||u.chofer_id,u.comp||u.acompanante_id,u.support||u.apoyo_id].filter(Boolean).map(id=>find(people,id,"nombre")).filter(name=>name&&name!=="—");
+    const crew=names.length?names:[...new Set(group.actions.flatMap(rapPersonnelNames))];
+    const unitTitle=group.label.split(" — ")[0];
+    lines.push("", "━━━━━━━━━━━━━━━━━━", "*"+unitTitle+"*");
+    if(crew.length)lines.push("👮 Personal: "+crew.join(", "));
+    const meals=[
+      ["🍳 Desayuno",u.breakfast||u.desayuno],
+      ["🍛 Almuerzo",u.lunch||u.almuerzo],
+      ["☕ Café",u.coffee||u.cafe],
+      ["🌙 Cena",u.dinner||u.cena]
+    ];
+    lines.push("*Horario de alimentación*");
+    meals.forEach(([name,value])=>lines.push(name+": "+(formatMilitaryTime(value)||"—")));
+    lines.push("*Acciones asignadas*");
+    if(!group.actions.length)lines.push("Sin acciones RAP asignadas.");
+    group.actions.forEach((a,i)=>{
+      lines.push("", "*"+(i+1)+". "+(a.actividad||"Actividad sin especificar")+"*", "Zona: "+(a.zona||"—"), "Horario: "+(formatMilitaryTime(a.hora_inicio)||"—")+" a "+(formatMilitaryTime(a.hora_fin)||"—"));
+    });
+  });
+  return lines.join("\n");
+}
 async function copyRapForWhatsApp(){
   const rows=[...rapSaved,...rapRowsInDraft()];
   if(!rows.length)return alert("Agregá al menos una acción RAP para copiar.");
-  const fecha=document.getElementById("roleDate")?.value||"";
-  const turno=document.getElementById("roleShift")?.value||"";
-  const lines=["*RESPUESTA DE ACCIÓN POLICIAL (RAP)*"];
-  if(fecha)lines.push("Fecha: "+fecha.split("-").reverse().join("/"));
-  if(turno)lines.push("Horario del rol: "+turno);
-  rows.forEach((a,i)=>{
-    const names=rapPersonnelNames(a);
-    lines.push("", `*Acción ${i+1}*`, `Zona: ${a.zona||"—"}`, `Actividad: ${a.actividad||"—"}`, `Unidad: ${a.unidad||a.asignado_a||"—"}`);
-    if(names.length)lines.push(`Personal: ${names.join(", ")}`);
-    lines.push(`Horario: ${formatMilitaryTime(a.hora_inicio)||"—"} a ${formatMilitaryTime(a.hora_fin)||"—"}`);
-  });
-  try{await navigator.clipboard.writeText(lines.join("\n"));alert("Reporte RAP copiado. Ahora abrí WhatsApp y pegalo.");}
+  const units=draft.map((unit,i)=>({label:rapUnitLabel(unit,i),unit}));
+  const text=buildGroupedRapWhatsApp(rows,units,document.getElementById("roleDate")?.value||"",document.getElementById("roleShift")?.value||"");
+  try{await navigator.clipboard.writeText(text);alert("Reporte RAP copiado agrupado por binomio. Ahora abrí WhatsApp y pegalo.");}
   catch(e){alert("No se pudo copiar el reporte RAP automáticamente. Probá desde el navegador o permití el acceso al portapapeles.");}
 }
 function moveU(i,dir){const j=i+dir;if(j<0||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];renderUnits();renderRapActions();renderRapPreview()}
@@ -929,10 +954,11 @@ async function copyRoleForWhatsApp(){
 function renderHistory(){historyList.innerHTML=roles.length?roles.slice().reverse().map(r=>`<div class=item><b>${esc(r.fecha)}</b> · ${esc(r.turno||"")}<div class=small>${esc(r.encargado||"")}</div><div class=actions><button onclick="openRole('${r.id}')">Ver informe</button><button class=secondary onclick="duplicateRole('${r.id}')">Duplicar</button></div></div>`).join(""):"<div class=small>No hay roles.</div>"}
 async function copySavedRapForWhatsApp(id){
   const r=roles.find(x=>String(x.id)===String(id));if(!r)return;
-  const actions=await getRapActions(r.id);if(!actions.length)return alert("Este rol no tiene acciones RAP.");
-  const lines=["*RESPUESTA DE ACCIÓN POLICIAL (RAP)*",`Fecha: ${r.fecha?String(r.fecha).split("-").reverse().join("/"):"—"}`,`Horario del rol: ${r.turno||"—"}`];
-  actions.forEach((a,i)=>{const names=rapPersonnelNames(a);lines.push("",`*Acción ${i+1}*`,`Zona: ${a.zona}`,`Actividad: ${a.actividad}`,`Unidad: ${a.unidad||a.asignado_a||"—"}`);if(names.length)lines.push(`Personal: ${names.join(", ")}`);lines.push(`Horario: ${formatMilitaryTime(a.hora_inicio)} a ${formatMilitaryTime(a.hora_fin)}`);});
-  try{await navigator.clipboard.writeText(lines.join("\n"));alert("Reporte RAP copiado. Ahora abrí WhatsApp y pegalo.");}catch(e){alert("No se pudo copiar automáticamente. Permití el acceso al portapapeles e intentá de nuevo.");}
+  const [actions,assignments]=await Promise.all([getRapActions(r.id),getUnits(r.id)]);
+  if(!actions.length)return alert("Este rol no tiene acciones RAP.");
+  const units=savedRapUnitEntries(assignments);
+  const text=buildGroupedRapWhatsApp(actions,units,r.fecha||"",r.turno||"");
+  try{await navigator.clipboard.writeText(text);alert("Reporte RAP copiado agrupado por binomio. Ahora abrí WhatsApp y pegalo.");}catch(e){alert("No se pudo copiar automáticamente. Permití el acceso al portapapeles e intentá de nuevo.");}
 }
 async function openRole(id){let r=roles.find(x=>x.id===id);if(!r)return;await showReport(r);go("informe");}
 async function openRapForRole(id){await loadRapRole(id);go("rap");}
