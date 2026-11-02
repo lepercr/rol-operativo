@@ -556,7 +556,7 @@ function delRapAction(i){rapDraft.splice(i,1);renderRapActions();renderRapPrevie
 function renderRapActions(){
   const container=document.getElementById("rapActions");
   if(!container)return;
-  container.innerHTML=rapDraft.length?rapDraft.map((a,i)=>`<div class="item rap-action-row"><div class="grid"><div><label>Zona de Interés Policial</label><input value="${esc(a.zona)}" placeholder="Ej. ZIP 01" onchange="setRap(${i},'zona',this.value)"></div><div><label>Actividad</label><input value="${esc(a.actividad)}" placeholder="Ej. Control de carreteras" onchange="setRap(${i},'actividad',this.value)"></div><div><label>Patrulla, moto o pareja</label><select onchange="setRapUnit(${i},this.value)">${rapUnitOptions(a.unidad)}</select></div><div><label>Personal de esa unidad</label><select multiple size="3" onchange="setRapPersonnel(${i},this)">${rapPersonnelOptions(a.unidad,a.personal_ids)}</select><div class="small">Podés seleccionar uno o varios oficiales.</div></div><div><label>Desde</label><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="normalizeMilitaryEntry(this)" value="${esc(a.hora_inicio)}" onchange="setRap(${i},'hora_inicio',this.value)"></div><div><label>Hasta</label><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="normalizeMilitaryEntry(this)" value="${esc(a.hora_fin)}" onchange="setRap(${i},'hora_fin',this.value)"></div><div><label>&nbsp;</label><button type="button" class="danger" onclick="delRapAction(${i})">🗑️ Quitar</button></div></div></div>`).join(""):"<div class=small>No hay acciones RAP agregadas.</div>";
+  container.innerHTML=rapDraft.length?rapDraft.map((a,i)=>`<div class="item rap-action-row"><div class="grid"><div><label>Zona de Interés Policial</label><input value="${esc(a.zona)}" placeholder="Ej. ZIP 01" onchange="setRap(${i},'zona',this.value)"></div><div><label>Actividad</label><input value="${esc(a.actividad)}" placeholder="Ej. Control de carreteras" onchange="setRap(${i},'actividad',this.value)"></div><div><label>Patrulla, moto o pareja</label><select onchange="setRapUnit(${i},this.value)">${rapUnitOptions(a.unidad)}</select></div><div><label>Personal de esa unidad</label><select multiple size="3" onchange="setRapPersonnel(${i},this)">${rapPersonnelOptions(a.unidad,a.personal_ids)}</select><div class="small">Podés seleccionar uno o varios oficiales.</div></div><div><label>Desde</label><input type="text" inputmode="text" maxlength="10" placeholder="HH:MM o 7:00 PM" oninput="normalizeMilitaryEntry(this)" onblur="formatMilitaryEntry(this)" value="${esc(a.hora_inicio)}" onchange="setRap(${i},'hora_inicio',this.value)"></div><div><label>Hasta</label><input type="text" inputmode="text" maxlength="10" placeholder="HH:MM o 7:00 PM" oninput="normalizeMilitaryEntry(this)" onblur="formatMilitaryEntry(this)" value="${esc(a.hora_fin)}" onchange="setRap(${i},'hora_fin',this.value)"></div><div><label>&nbsp;</label><button type="button" class="danger" onclick="delRapAction(${i})">🗑️ Quitar</button></div></div></div>`).join(""):"<div class=small>No hay acciones RAP agregadas.</div>";
 }
 function rapPersonnelNames(action){
   return (Array.isArray(action.personal_ids)?action.personal_ids:[]).map(id=>find(people,id,"nombre")).filter(name=>name&&name!=="—");
@@ -564,9 +564,33 @@ function rapPersonnelNames(action){
 function rapRowsInDraft(){
   return rapDraft.filter(a=>a.zona?.trim()||a.actividad?.trim()||a.unidad||a.hora_inicio||a.hora_fin||(Array.isArray(a.personal_ids)&&a.personal_ids.length));
 }
-function normalizeMilitaryEntry(input){const digits=String(input.value||"").replace(/\D/g,"").slice(0,4);input.value=digits.length>2?digits.slice(0,2)+":"+digits.slice(2):digits;}
-function formatMilitaryTime(value){const match=String(value||"").match(/^([0-2]\d:[0-5]\d)/);return match?match[1]:"";}
-function validMilitaryTime(value){return /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value||""));}
+function normalizeTimeValue(value){
+  let raw=String(value??"").trim().toLowerCase().replace(/[.\s]/g,"");
+  if(!raw)return "";
+  let suffix="";
+  if(raw.endsWith("am")||raw.endsWith("pm")){suffix=raw.slice(-2);raw=raw.slice(0,-2);}
+  let hour,minute;
+  const compact=raw.match(/^(\d{3,4})$/);
+  const separated=raw.match(/^(\d{1,2}):(\d{1,2})(?::\d{2})?$/);
+  const hourOnly=raw.match(/^(\d{1,2})$/);
+  if(compact){const digits=compact[1];hour=Number(digits.slice(0,-2));minute=Number(digits.slice(-2));}
+  else if(separated){hour=Number(separated[1]);minute=Number(separated[2]);}
+  else if(hourOnly){hour=Number(hourOnly[1]);minute=0;}
+  else return "";
+  if(!Number.isInteger(hour)||!Number.isInteger(minute)||minute<0||minute>59)return "";
+  if(suffix){if(hour<1||hour>12)return "";hour=hour%12+(suffix==="pm"?12:0);}
+  else if(hour<0||hour>23)return "";
+  return String(hour).padStart(2,"0")+":"+String(minute).padStart(2,"0");
+}
+function normalizeMilitaryEntry(input){
+  const value=String(input.value||"");
+  if(/[a-z:.\s]/i.test(value))return;
+  const digits=value.replace(/\D/g,"").slice(0,4);
+  if(digits.length===4)input.value=digits.slice(0,2)+":"+digits.slice(2);
+}
+function formatMilitaryEntry(input){const normalized=normalizeTimeValue(input.value);if(normalized)input.value=normalized;}
+function formatMilitaryTime(value){return normalizeTimeValue(value);}
+function validMilitaryTime(value){return !!normalizeTimeValue(value);}
 function savedRapUnitEntries(units){
   let pairNo=0;
   return units.map(u=>{
@@ -661,7 +685,7 @@ function renderUnits(){
   units.innerHTML=draft.length?draft.map((u,i)=>{
     let pairNo=draft.slice(0,i).filter(x=>x.unitType==="pareja").length+1;
     let titulo=u.unitType==="moto"?(find(cars,u.car,"numero")!=="—"?"🏍️ Moto "+find(cars,u.car,"numero"):"🏍️ Moto"):u.unitType==="pareja"?"👮 Pareja "+pairNo:(find(cars,u.car,"numero")!=="—"?"🚓 Patrulla "+find(cars,u.car,"numero"):"🚓 Patrulla");
-    return `<div class=card><h3>${titulo}</h3><div class=grid><div><label>Tipo de unidad</label><select onchange="setU(${i},'unitType',this.value)"><option value="patrulla" ${u.unitType==="patrulla"||!u.unitType?"selected":""}>🚓 Patrulla</option><option value="moto" ${u.unitType==="moto"?"selected":""}>🏍️ Moto</option><option value="pareja" ${u.unitType==="pareja"?"selected":""}>👮 Pareja en recorrido</option></select></div></div>${u.unitType==="pareja"?`<div class=grid><div><label>👮 Oficial 1</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Oficial 2</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Oficial 3</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`:u.unitType==="moto"?`<div class=grid><div><label>🏍️ Moto</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Oficial</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`:`<div class=grid><div><label>🚓 Patrulla</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Chofer</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Apoyo</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`}<h4>🍽️ Horario de alimentación</h4><label class="meal-toggle"><input type="checkbox" onchange="setNoMeals(${i},this.checked)" ${u.noMeals?"checked":""}> No asignar horario de alimentación</label><div class=grid><div class="meal-field"><label>🍳 Desayuno</label><div class="meal-input-row"><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="normalizeMilitaryEntry(this)" value="${esc(u.breakfast||"")}" onchange="setU(${i},'breakfast',this.value)" ${u.noMeals?"disabled":""}><button type="button" class="secondary meal-clear" title="Dejar en blanco" aria-label="Dejar desayuno en blanco" onclick="clearMealTime(${i},'breakfast')" ${u.noMeals?"disabled":""}>Limpiar</button></div></div><div class="meal-field"><label>🍛 Almuerzo</label><div class="meal-input-row"><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="normalizeMilitaryEntry(this)" value="${esc(u.lunch||"")}" onchange="setU(${i},'lunch',this.value)" ${u.noMeals?"disabled":""}><button type="button" class="secondary meal-clear" title="Dejar en blanco" aria-label="Dejar almuerzo en blanco" onclick="clearMealTime(${i},'lunch')" ${u.noMeals?"disabled":""}>Limpiar</button></div></div><div class="meal-field"><label>☕ Café</label><div class="meal-input-row"><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="normalizeMilitaryEntry(this)" value="${esc(u.coffee||"")}" onchange="setU(${i},'coffee',this.value)" ${u.noMeals?"disabled":""}><button type="button" class="secondary meal-clear" title="Dejar en blanco" aria-label="Dejar café en blanco" onclick="clearMealTime(${i},'coffee')" ${u.noMeals?"disabled":""}>Limpiar</button></div></div><div class="meal-field"><label>🌙 Cena</label><div class="meal-input-row"><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="normalizeMilitaryEntry(this)" value="${esc(u.dinner||"")}" onchange="setU(${i},'dinner',this.value)" ${u.noMeals?"disabled":""}><button type="button" class="secondary meal-clear" title="Dejar en blanco" aria-label="Dejar cena en blanco" onclick="clearMealTime(${i},'dinner')" ${u.noMeals?"disabled":""}>Limpiar</button></div></div><div><label>📍 Sector asignado</label><input value="${esc(u.sector||"")}" onchange="setU(${i},'sector',this.value)"></div></div><div class=actions style="align-items:center;gap:8px;flex-wrap:wrap"><span class="small" style="font-weight:800">Orden:</span><button type="button" onclick="moveU(${i},-1)" ${i===0?"disabled":""}>⬆️ Subir</button><button type="button" onclick="moveU(${i},1)" ${i===draft.length-1?"disabled":""}>⬇️ Bajar</button><button class=danger type="button" onclick="delU(${i})">Eliminar unidad</button></div></div>`;
+    return `<div class=card><h3>${titulo}</h3><div class=grid><div><label>Tipo de unidad</label><select onchange="setU(${i},'unitType',this.value)"><option value="patrulla" ${u.unitType==="patrulla"||!u.unitType?"selected":""}>🚓 Patrulla</option><option value="moto" ${u.unitType==="moto"?"selected":""}>🏍️ Moto</option><option value="pareja" ${u.unitType==="pareja"?"selected":""}>👮 Pareja en recorrido</option></select></div></div>${u.unitType==="pareja"?`<div class=grid><div><label>👮 Oficial 1</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Oficial 2</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Oficial 3</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`:u.unitType==="moto"?`<div class=grid><div><label>🏍️ Moto</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Oficial</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div></div>`:`<div class=grid><div><label>🚓 Patrulla</label><select onchange="setU(${i},'car',this.value)">${cOpts(u.car)}</select></div><div><label>👮 Chofer</label><select onchange="setU(${i},'driver',this.value)">${pOpts(u.driver)}</select></div><div><label>👮 Acompañante</label><select onchange="setU(${i},'comp',this.value)">${pOpts(u.comp)}</select></div><div><label>👮 Apoyo</label><select onchange="setU(${i},'support',this.value)">${pOpts(u.support)}</select></div></div>`}<h4>🍽️ Horario de alimentación</h4><label class="meal-toggle"><input type="checkbox" onchange="setNoMeals(${i},this.checked)" ${u.noMeals?"checked":""}> No asignar horario de alimentación</label><div class=grid><div class="meal-field"><label>🍳 Desayuno</label><div class="meal-input-row"><input type="text" inputmode="text" maxlength="10" placeholder="HH:MM o 7:00 PM" oninput="normalizeMilitaryEntry(this)" onblur="formatMilitaryEntry(this)" value="${esc(u.breakfast||"")}" onchange="setU(${i},'breakfast',this.value)" ${u.noMeals?"disabled":""}><button type="button" class="secondary meal-clear" title="Dejar en blanco" aria-label="Dejar desayuno en blanco" onclick="clearMealTime(${i},'breakfast')" ${u.noMeals?"disabled":""}>Limpiar</button></div></div><div class="meal-field"><label>🍛 Almuerzo</label><div class="meal-input-row"><input type="text" inputmode="text" maxlength="10" placeholder="HH:MM o 7:00 PM" oninput="normalizeMilitaryEntry(this)" onblur="formatMilitaryEntry(this)" value="${esc(u.lunch||"")}" onchange="setU(${i},'lunch',this.value)" ${u.noMeals?"disabled":""}><button type="button" class="secondary meal-clear" title="Dejar en blanco" aria-label="Dejar almuerzo en blanco" onclick="clearMealTime(${i},'lunch')" ${u.noMeals?"disabled":""}>Limpiar</button></div></div><div class="meal-field"><label>☕ Café</label><div class="meal-input-row"><input type="text" inputmode="text" maxlength="10" placeholder="HH:MM o 7:00 PM" oninput="normalizeMilitaryEntry(this)" onblur="formatMilitaryEntry(this)" value="${esc(u.coffee||"")}" onchange="setU(${i},'coffee',this.value)" ${u.noMeals?"disabled":""}><button type="button" class="secondary meal-clear" title="Dejar en blanco" aria-label="Dejar café en blanco" onclick="clearMealTime(${i},'coffee')" ${u.noMeals?"disabled":""}>Limpiar</button></div></div><div class="meal-field"><label>🌙 Cena</label><div class="meal-input-row"><input type="text" inputmode="text" maxlength="10" placeholder="HH:MM o 7:00 PM" oninput="normalizeMilitaryEntry(this)" onblur="formatMilitaryEntry(this)" value="${esc(u.dinner||"")}" onchange="setU(${i},'dinner',this.value)" ${u.noMeals?"disabled":""}><button type="button" class="secondary meal-clear" title="Dejar en blanco" aria-label="Dejar cena en blanco" onclick="clearMealTime(${i},'dinner')" ${u.noMeals?"disabled":""}>Limpiar</button></div></div><div><label>📍 Sector asignado</label><input value="${esc(u.sector||"")}" onchange="setU(${i},'sector',this.value)"></div></div><div class=actions style="align-items:center;gap:8px;flex-wrap:wrap"><span class="small" style="font-weight:800">Orden:</span><button type="button" onclick="moveU(${i},-1)" ${i===0?"disabled":""}>⬆️ Subir</button><button type="button" onclick="moveU(${i},1)" ${i===draft.length-1?"disabled":""}>⬇️ Bajar</button><button class=danger type="button" onclick="delU(${i})">Eliminar unidad</button></div></div>`;
   }).join(""):"Agregá una unidad para comenzar.";
 }
 async function getUnits(id){
@@ -729,7 +753,9 @@ async function saveRapActions(){
   for(const a of rows){
     if(!a.zona.trim()||!a.actividad.trim()||!a.unidad||!a.hora_inicio||!a.hora_fin||!Array.isArray(a.personal_ids)||!a.personal_ids.length)
       return alert("Completá zona, actividad, unidad, al menos un funcionario y horario en cada acción RAP.");
-    if(!validMilitaryTime(a.hora_inicio)||!validMilitaryTime(a.hora_fin))return alert("Usá HH:MM (00:00–23:59) en los horarios de las acciones RAP.");
+    const start=normalizeTimeValue(a.hora_inicio),end=normalizeTimeValue(a.hora_fin);
+    if(!start||!end)return alert("Ingresá una hora válida (por ejemplo 07:00, 700 o 7:00 PM) en las acciones RAP.");
+    a.hora_inicio=start;a.hora_fin=end;
   }
   const schemaCheck=await sb.from("rap_acciones").select("id").limit(1);
   if(schemaCheck.error)return alert("Para guardar acciones RAP, ejecutá el SQL actualizado de rap_acciones en Supabase.");
@@ -749,7 +775,7 @@ function addPersonalRolRow(area,data={}){
   const cont=document.getElementById(ids[area]); if(!cont)return;
   const disponibles=people.filter(p=>p.estado==="Disponible"||p.id===data.funcionario_id);
   const row=document.createElement("div"); row.className="item personal-rol-row"; row.dataset.area=area;
-  row.innerHTML=`<div class="grid"><div><label>Funcionario</label><select class="rol-persona"><option value="">— Seleccionar —</option>${disponibles.map(p=>`<option value="${p.id}" ${p.id===data.funcionario_id?"selected":""}>${esc(p.nombre)}</option>`).join("")}</select></div><div><label>Entrada</label><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="normalizeMilitaryEntry(this)" class="rol-entrada" value="${esc(data.hora_entrada||"06:00")}"></div><div><label>Salida</label><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" oninput="normalizeMilitaryEntry(this)" class="rol-salida" value="${esc(data.hora_salida||"18:00")}"></div><div><label>&nbsp;</label><button type="button" class="danger" onclick="this.closest('.personal-rol-row').remove()">🗑️ Quitar</button></div></div>`;
+  row.innerHTML=`<div class="grid"><div><label>Funcionario</label><select class="rol-persona"><option value="">— Seleccionar —</option>${disponibles.map(p=>`<option value="${p.id}" ${p.id===data.funcionario_id?"selected":""}>${esc(p.nombre)}</option>`).join("")}</select></div><div><label>Entrada</label><input type="text" inputmode="text" maxlength="10" placeholder="HH:MM o 7:00 PM" oninput="normalizeMilitaryEntry(this)" onblur="formatMilitaryEntry(this)" class="rol-entrada" value="${esc(data.hora_entrada||"06:00")}"></div><div><label>Salida</label><input type="text" inputmode="text" maxlength="10" placeholder="HH:MM o 7:00 PM" oninput="normalizeMilitaryEntry(this)" onblur="formatMilitaryEntry(this)" class="rol-salida" value="${esc(data.hora_salida||"18:00")}"></div><div><label>&nbsp;</label><button type="button" class="danger" onclick="this.closest('.personal-rol-row').remove()">🗑️ Quitar</button></div></div>`;
   cont.appendChild(row);
 }
 async function loadPersonalRol(id){clearPersonalRol();let p=await getPersonalRol(id);p.forEach(x=>addPersonalRolRow(x.area,{funcionario_id:x.funcionario_id||"",hora_entrada:x.hora_entrada||"06:00",hora_salida:x.hora_salida||"18:00"}));return p;}
@@ -762,7 +788,9 @@ async function saveRole(){
   for(const a of rapRows){
     if(!a.zona.trim()||!a.actividad.trim()||!a.unidad||!a.hora_inicio||!a.hora_fin||!Array.isArray(a.personal_ids)||!a.personal_ids.length)
       return alert("Completá zona, actividad, unidad, al menos un funcionario y horario en cada acción RAP.");
-    if(!validMilitaryTime(a.hora_inicio)||!validMilitaryTime(a.hora_fin))return alert("Usá HH:MM (00:00–23:59) en los horarios de las acciones RAP.");
+    const start=normalizeTimeValue(a.hora_inicio),end=normalizeTimeValue(a.hora_fin);
+    if(!start||!end)return alert("Ingresá una hora válida (por ejemplo 07:00, 700 o 7:00 PM) en las acciones RAP.");
+    a.hora_inicio=start;a.hora_fin=end;
   }
   if(rapRows.length){
     const schemaCheck=await sb.from("rap_acciones").select("id").limit(1);
@@ -770,7 +798,12 @@ async function saveRole(){
   }
 
   for(let u of draft){
-    for(const [name,value] of [["desayuno",u.breakfast],["almuerzo",u.lunch],["café",u.coffee],["cena",u.dinner]])if(value&&!validMilitaryTime(value))return alert("Usá HH:MM (00:00–23:59) para "+name+".");
+    for(const [name,key] of [["desayuno","breakfast"],["almuerzo","lunch"],["café","coffee"],["cena","dinner"]]){
+      if(!u[key])continue;
+      const normalized=normalizeTimeValue(u[key]);
+      if(!normalized)return alert("Ingresá una hora válida para "+name+" (por ejemplo 07:00, 700 o 7:00 PM).");
+      u[key]=normalized;
+    }
     let type=u.unitType||"patrulla";
 
    if(type==="patrulla"&&!u.car)
@@ -789,7 +822,7 @@ async function saveRole(){
       return alert("La pareja en recorrido necesita dos oficiales.");
   }
 
-  for(const row of officeRows){for(const selector of [".rol-entrada",".rol-salida"]){const value=row.querySelector(selector).value;if(value&&!validMilitaryTime(value))return alert("Usá HH:MM (00:00–23:59) en los horarios del personal de oficina.");}}
+  for(const row of officeRows){for(const selector of [".rol-entrada",".rol-salida"]){const input=row.querySelector(selector),value=input.value;if(value){const normalized=normalizeTimeValue(value);if(!normalized)return alert("Ingresá una hora válida para el personal de oficina (por ejemplo 07:00, 700 o 7:00 PM).");input.value=normalized;}}}
 
   let used=[];
 
