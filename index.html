@@ -268,6 +268,9 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 .history-personnel-content{display:grid;gap:10px;padding-top:10px;color:#445d72}
 .history-personnel-section{display:grid;gap:4px;padding-top:8px;border-top:1px solid #e1ebf1}
 .history-personnel-section:first-child{border-top:0;padding-top:0}
+
+.rap-preview-meta{display:flex;flex-wrap:wrap;gap:8px 20px;margin:10px 0 16px;color:#5f7186;font-size:14px}
+.rap-preview-meta span{display:inline-flex;align-items:center;gap:4px}
 </style></head><body>
 <header><div class="wrap"><h1>🚓 Rol Operativo</h1><div class="sub">Planificación del servicio · Desarrollado por Leonel Pérez Gallardo · Versión 3.0</div></div></header>
 <section id="login" class="login card"><h2>🔐 Acceso</h2><p class="small">Ingresá con tu cuenta autorizada.</p><label>Correo</label><input id="email" type="email"><label style="margin-top:10px">Contraseña</label><input id="password" type="password"><div class="actions"><button onclick="signIn()">Iniciar sesión</button><button class="secondary" onclick="signUp()">Crear cuenta</button></div><p id="authMsg" class="small"></p></section>
@@ -372,6 +375,7 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
 const sb=supabase.createClient("https://twnpkicoenwonvvxcqjm.supabase.co","sb_publishable_JI19iTrqw0ywlmx7vhCM9w_QYCmrDmA");
 let people=[],cars=[],roles=[],personalRol=[],draft=[],rapDraft=[],rapSaved=[],activeRoleId=null;
 document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>go(b.dataset.p));
+["roleDate","roleShift"].forEach(id=>document.getElementById(id)?.addEventListener("input",renderRapPreview));
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const PERSON_GROUPS=["Escuadra 1","Escuadra 2","Escuadra 3","Escuadra 4","Operaciones","Programas","Labores mixtas","Jefaturas"];
 const msg=t=>authMsg.textContent=t;
@@ -640,10 +644,13 @@ function renderRapPreview(){
   if(!container)return;
   const rows=[...rapSaved,...rapRowsInDraft()];
   const units=draft.map((u,i)=>({label:rapUnitLabel(u,i),unit:u}));
-  if(!rows.length&&!units.length){container.innerHTML="<div class=small>Agregá una unidad para ver su horario de alimentación.</div>";return;}
-  const fecha=document.getElementById("roleDate")?.value||"";
-  const turno=document.getElementById("roleShift")?.value||"";
-  container.innerHTML=`<h3>Vista previa: Respuesta de Acción Policial (RAP)</h3><div class="small">${fecha?esc(fecha.split("-").reverse().join("/"))+" · ":""}${turno?"Horario del rol: "+esc(turno):""}</div>${renderGroupedRap(rows,units)}`;
+  const selectedRole=roles.find(r=>String(r.id)===String(activeRoleId));
+  const fecha=document.getElementById("roleDate")?.value||selectedRole?.fecha||"";
+  const datePart=String(fecha).split("T")[0];
+  const fechaVista=datePart.includes("-")?datePart.split("-").reverse().join("/"):datePart;
+  const turno=document.getElementById("roleShift")?.value||selectedRole?.turno||"";
+  const content=rows.length||units.length?renderGroupedRap(rows,units):'<div class="small">Agregá una unidad o acción RAP para ver la vista previa.</div>';
+  container.innerHTML=`<h3>Vista previa: Respuesta de Acción Policial (RAP)</h3><div class="rap-preview-meta"><span>📅 <b>Fecha del rol:</b> ${esc(fechaVista||"Sin fecha")}</span><span>🕒 <b>Horario del rol:</b> ${esc(turno||"Sin horario")}</span></div>${content}`;
 }
 function buildGroupedRapWhatsApp(actions,unitEntries,fecha,turno){
   const groups=new Map();
