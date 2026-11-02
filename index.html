@@ -367,7 +367,7 @@ hr{border:0;border-top:1px solid var(--line);margin:22px 0}
     <div id="rapReport" class="card"></div>
   </div>
 </section>
-<section id="historial" class="page"><div class="card"><h2>📚 Historial</h2><div id="historyList"></div></div></section>
+<section id="historial" class="page"><div class="card"><h2>📚 Historial</h2><div class="actions" style="margin:0 0 14px"><button type="button" class="danger" onclick="deleteAllRoles()">🗑️ Borrar todos los roles y sus RAP</button></div><p class="small">También podés borrar un rol individual junto con sus acciones RAP desde cada registro.</p><div id="historyList"></div></div></section>
 <section id="informe" class="page"><div id="report"></div><div class="card no-print"><button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button></div></section>
 </main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1092,6 +1092,34 @@ async function copyRoleForWhatsApp(){
     alert("Rol copiado. Ahora abrí WhatsApp y pegalo.");
   }catch(e){ alert("No se pudo copiar automáticamente. Probá desde el navegador o permití el acceso al portapapeles."); }
 }
+async function deleteSavedRole(id){
+  const role=roles.find(r=>String(r.id)===String(id));if(!role)return;
+  const label=(role.fecha?String(role.fecha).split("-").reverse().join("/"):"Sin fecha")+" · "+(role.turno||"sin horario");
+  if(!confirm("¿Eliminar el rol "+label+" y todas sus acciones RAP, unidades y asignaciones de oficina? Esta acción no se puede deshacer."))return;
+  for(const table of ["rap_acciones","asignaciones","personal_rol"]){
+    const result=await sb.from(table).delete().eq("rol_id",id);
+    if(result.error)return alert("No se pudo completar el borrado en "+table+": "+result.error.message);
+  }
+  const result=await sb.from("roles").delete().eq("id",id);
+  if(result.error)return alert("No se pudo eliminar el rol: "+result.error.message);
+  if(String(activeRoleId)===String(id)){activeRoleId=null;rapSaved=[];rapDraft=[];draft=[];}
+  await loadAll();
+  alert("Se eliminó el rol y sus acciones RAP.");
+}
+async function deleteAllRoles(){
+  const ids=roles.map(r=>r.id);if(!ids.length)return alert("No hay roles guardados para eliminar.");
+  if(!confirm("Vas a eliminar los "+ids.length+" roles guardados y todos sus RAP, unidades y asignaciones de oficina. Esta acción no se puede deshacer. ¿Continuar?"))return;
+  if(!confirm("Confirmación final: ¿borrar definitivamente todos los roles guardados?"))return;
+  for(const table of ["rap_acciones","asignaciones","personal_rol"]){
+    const result=await sb.from(table).delete().in("rol_id",ids);
+    if(result.error)return alert("El borrado se detuvo en "+table+": "+result.error.message);
+  }
+  const result=await sb.from("roles").delete().in("id",ids);
+  if(result.error)return alert("No se pudieron eliminar todos los roles: "+result.error.message);
+  activeRoleId=null;rapSaved=[];rapDraft=[];draft=[];
+  await loadAll();
+  alert("Se eliminaron todos los roles guardados y sus acciones RAP.");
+}
 async function renderHistory(){
   if(!roles.length){historyList.innerHTML="<div class=small>No hay roles.</div>";return;}
   const ids=roles.map(r=>r.id);
@@ -1117,7 +1145,7 @@ async function renderHistory(){
     const assignedIds=[...command.map(([,id])=>id),...units.flatMap(u=>[u.chofer_id,u.acompanante_id,u.apoyo_id]),...office.map(x=>x.funcionario_id)].filter(Boolean);
     const count=new Set(assignedIds).size;
     const parts=[hierarchyHtml&&'<div class="history-personnel-section"><b>Jefaturas y guardia</b>'+hierarchyHtml+"</div>",unitLines&&'<div class="history-personnel-section"><b>Unidades</b>'+unitLines+"</div>",officeLines&&'<div class="history-personnel-section"><b>Personal de oficina</b>'+officeLines+"</div>"].filter(Boolean).join("");
-    return '<div class="item history-role"><b>'+esc(r.fecha)+'</b> · '+esc(r.turno||"")+'<div class=small>'+esc(r.encargado||"")+'</div><details class="history-personnel"><summary>Ver personal asignado · '+count+'</summary><div class="history-personnel-content">'+(parts||'<div class=small>Este rol no tiene personal asignado.</div>')+'</div></details><div class=actions><button onclick="openRole(\''+r.id+'\')">Ver informe</button><button class=secondary onclick="duplicateRole(\''+r.id+'\')">Duplicar</button></div></div>';
+    return '<div class="item history-role"><b>'+esc(r.fecha)+'</b> · '+esc(r.turno||"")+'<div class=small>'+esc(r.encargado||"")+'</div><details class="history-personnel"><summary>Ver personal asignado · '+count+'</summary><div class="history-personnel-content">'+(parts||'<div class=small>Este rol no tiene personal asignado.</div>')+'</div></details><div class=actions><button onclick="openRole(\''+r.id+'\')">Ver informe</button><button class=secondary onclick="duplicateRole(\''+r.id+'\')">Duplicar</button><button class="danger" onclick="deleteSavedRole(\\''+r.id+'\\')">Eliminar rol + RAP</button></div></div>';
   }).join("");
 }
 async function copySavedRapForWhatsApp(id){
